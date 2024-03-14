@@ -1,5 +1,6 @@
-import numpy as np
 import pandas as pd
+from methods import split
+from models import knn, dmc
 
 df = pd.read_csv("datasets/iris/iris.csv")
 
@@ -18,44 +19,47 @@ df = pd.read_csv("datasets/iris/iris.csv")
 
 # [150 rows x 6 columns]
 
-def split(df: pd.DataFrame, train_percent: float = 0.7):
-    df = df.sample(frac=1)[:10]
-    train_count = int(len(df) * train_percent)
-    test_count = len(df) - train_count
-    train = df[:train_count]
-    test = df[-test_count:]
-    return (train, test) # TODO: split in (train, train_labels, test, test_labels)
+# METHOD
+train, train_labels, test, test_labels = split.holdout(df[:10])
 
-all_avg_versicolor = []
-all_avg_virginica = []
-all_avg_setosa = []
+# MODEL
+knn.fit(train, train_labels)
+knn.predict(train, train_labels)
 
-all_std_versicolor = []
-all_std_virginica = []
-all_std_setosa = []
+dmc.fit(train, train_labels)
+dmc.predict(train, train_labels)
 
-for r in range(1,11):
-    # train, train_labels, test, test_labels = split(df)
-    
-    # knn.fit(train, train_labels)
-    
-    # res = knn.predict(test, test_labels)
-    
-    # metrics
-    versicolor = [1,0,0]
-    virginica = [1,0,1]
-    setosa = [1,1,1]
-    
-    avg_versicolor = np.average(versicolor)
-    avg_virginica = np.average(virginica)
-    avg_setosa = np.average(setosa)
-    all_avg_versicolor.append(avg_versicolor)
-    all_avg_virginica.append(avg_virginica)
-    all_avg_setosa.append(avg_setosa)
+# METRICS TODO: move or integrate it with models
+# all_avg_versicolor = []
+# all_avg_virginica = []
+# all_avg_setosa = []
 
-    std_versicolor = np.std(versicolor)
-    std_virginica = np.std(virginica)
-    std_setosa = np.std(setosa)
-    all_std_versicolor.append(std_versicolor)
-    all_std_virginica.append(std_virginica)
-    all_std_setosa.append(std_setosa)
+# all_std_versicolor = []
+# all_std_virginica = []
+# all_std_setosa = []
+
+# for r in range(1,11):
+#     # train, train_labels, test, test_labels = split(df)
+    
+#     # knn.fit(train, train_labels)
+    
+#     # res = knn.predict(test, test_labels)
+    
+#     # metrics
+#     versicolor = [1,0,0]
+#     virginica = [1,0,1]
+#     setosa = [1,1,1]
+    
+#     avg_versicolor = np.average(versicolor)
+#     avg_virginica = np.average(virginica)
+#     avg_setosa = np.average(setosa)
+#     all_avg_versicolor.append(avg_versicolor)
+#     all_avg_virginica.append(avg_virginica)
+#     all_avg_setosa.append(avg_setosa)
+
+#     std_versicolor = np.std(versicolor)
+#     std_virginica = np.std(virginica)
+#     std_setosa = np.std(setosa)
+#     all_std_versicolor.append(std_versicolor)
+#     all_std_virginica.append(std_virginica)
+#     all_std_setosa.append(std_setosa)
