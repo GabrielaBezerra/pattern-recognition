@@ -2,7 +2,7 @@ import pandas as pd
 from methods import split
 from models import knn, dmc
 
-df = pd.read_csv("datasets/iris/iris.csv")
+df = pd.read_csv("datasets/iris/Iris.csv")
 
 #       Id  SepalLengthCm  SepalWidthCm  PetalLengthCm  PetalWidthCm         Species
 # 0      1            5.1           3.5            1.4           0.2     Iris-setosa
@@ -23,11 +23,9 @@ df = pd.read_csv("datasets/iris/iris.csv")
 train, train_labels, test, test_labels = split.holdout(df[:10])
 
 # MODEL
-knn.fit(train, train_labels)
-knn.predict(train, train_labels)
-
-dmc.fit(train, train_labels)
-dmc.predict(train, train_labels)
+knn = knn.KNNClassifier(k=5) 
+knn.fit(train.to_numpy(), train_labels.to_numpy())
+knn.predict(test.to_numpy(), test_labels.to_numpy())
 
 # METRICS TODO: move or integrate it with models
 # all_avg_versicolor = []
