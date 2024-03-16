@@ -1,6 +1,7 @@
-# import numpy as np
+# deboraruth.me instagram pefoce
+
 import pandas as pd
-from methods import split
+from methods import split, metric
 from models import knn, dmc
 
 df = pd.read_csv("datasets/iris/Iris.csv")
@@ -20,45 +21,26 @@ df = pd.read_csv("datasets/iris/Iris.csv")
 
 # [150 rows x 6 columns]
 
-# METHOD
-train, train_labels, test, test_labels = split.holdout(df[:10])
 
-# MODEL
-knn = knn.KNNClassifier(k=5)
-knn.fit(train.to_numpy(), train_labels.to_numpy())
-knn.predict(test.to_numpy(), test_labels.to_numpy())
+def realizations(df: pd.DataFrame, model):
+    # metrics
+    metric_set = metric.ClassifierMetric(label="setosa")
+    metric_ver = metric.ClassifierMetric(label="versicolor")
+    metric_vir = metric.ClassifierMetric(label="virginica")
 
-# METRICS TODO: move or integrate it with models
-# all_avg_versicolor = []
-# all_avg_virginica = []
-# all_avg_setosa = []
+    for i in range(0, 10):
+        train, train_labels, test, test_labels = split.holdout(df[:10])
+        model.fit(train.to_numpy(), train_labels.to_numpy())
+        predictions = model.predict(test.to_numpy(), test_labels.to_numpy())
+        # map predictions to label_hit_miss
+        versicolor_hit_miss = [1, 0, 0]
+        virginica_hit_miss = [1, 0, 1]
+        setosa_hit_miss = [1, 1, 1]
 
-# all_std_versicolor = []
-# all_std_virginica = []
-# all_std_setosa = []
+        metric_ver.compute(versicolor_hit_miss)
+        metric_vir.compute(virginica_hit_miss)
+        metric_set.compute(setosa_hit_miss)
 
-# for r in range(1,11):
-#     # train, train_labels, test, test_labels = split(df)
 
-#     # knn.fit(train, train_labels)
-
-#     # res = knn.predict(test, test_labels)
-
-#     # metrics
-#     versicolor = [1, 0, 0]
-#     virginica = [1, 0, 1]
-#     setosa = [1, 1, 1]
-
-#     avg_versicolor = np.average(versicolor)
-#     avg_virginica = np.average(virginica)
-#     avg_setosa = np.average(setosa)
-#     all_avg_versicolor.append(avg_versicolor)
-#     all_avg_virginica.append(avg_virginica)
-#     all_avg_setosa.append(avg_setosa)
-
-#     std_versicolor = np.std(versicolor)
-#     std_virginica = np.std(virginica)
-#     std_setosa = np.std(setosa)
-#     all_std_versicolor.append(std_versicolor)
-#     all_std_virginica.append(std_virginica)
-#     all_std_setosa.append(std_setosa)
+realizations(df, knn.KNNClassifier(k=5))
+# realizations(df, dmc)

@@ -24,7 +24,6 @@ class KNNClassifier:
             nearest_labels = labels[nearest_indices]
             predicted_label = np.bincount(nearest_labels).argmax()
             predictions.append(predicted_label)
-        print(predictions)
         return predictions
 
     def euclidean_distance(self, data1, data2):
