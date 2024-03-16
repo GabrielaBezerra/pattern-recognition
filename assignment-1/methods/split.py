@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def holdout(df: pd.DataFrame, train_percent: float = 0.7):
     df = df.sample(frac=1, replace=False)
     train_count = int(len(df) * train_percent)
@@ -11,4 +12,9 @@ def holdout(df: pd.DataFrame, train_percent: float = 0.7):
     test_features = test.iloc[:, :-1]
     test_labels = test.iloc[:, -1:]
     print(test_labels)
-    return (train_features, train_labels, test_features, test_labels) # TODO: split in (train, train_labels, test, test_labels)
+    return (
+        train_features,
+        train_labels,
+        test_features,
+        test_labels,
+    )  # TODO: split in (train, train_labels, test, test_labels)

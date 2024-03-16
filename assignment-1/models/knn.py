@@ -1,7 +1,7 @@
 import numpy as np
 
-class KNNClassifier:
 
+class KNNClassifier:
     memory: list[np.ndarray]
 
     def __init__(self, k: int):
@@ -20,13 +20,12 @@ class KNNClassifier:
             distances = []
             for data in self.memory:
                 distances.append(self.euclidean_distance(data, newData))
-            nearest_indices = np.argsort(distances)[:self.k]
+            nearest_indices = np.argsort(distances)[: self.k]
             nearest_labels = labels[nearest_indices]
             predicted_label = np.bincount(nearest_labels).argmax()
             predictions.append(predicted_label)
         print(predictions)
         return predictions
 
-
     def euclidean_distance(self, data1, data2):
-        return np.sqrt(np.sum((data1 - data2)**2))
+        return np.sqrt(np.sum((data1 - data2) ** 2))

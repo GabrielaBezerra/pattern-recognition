@@ -1,3 +1,4 @@
+# import numpy as np
 import pandas as pd
 from methods import split
 from models import knn, dmc
@@ -23,7 +24,7 @@ df = pd.read_csv("datasets/iris/Iris.csv")
 train, train_labels, test, test_labels = split.holdout(df[:10])
 
 # MODEL
-knn = knn.KNNClassifier(k=5) 
+knn = knn.KNNClassifier(k=5)
 knn.fit(train.to_numpy(), train_labels.to_numpy())
 knn.predict(test.to_numpy(), test_labels.to_numpy())
 
@@ -38,16 +39,16 @@ knn.predict(test.to_numpy(), test_labels.to_numpy())
 
 # for r in range(1,11):
 #     # train, train_labels, test, test_labels = split(df)
-    
+
 #     # knn.fit(train, train_labels)
-    
+
 #     # res = knn.predict(test, test_labels)
-    
+
 #     # metrics
-#     versicolor = [1,0,0]
-#     virginica = [1,0,1]
-#     setosa = [1,1,1]
-    
+#     versicolor = [1, 0, 0]
+#     virginica = [1, 0, 1]
+#     setosa = [1, 1, 1]
+
 #     avg_versicolor = np.average(versicolor)
 #     avg_virginica = np.average(virginica)
 #     avg_setosa = np.average(setosa)
