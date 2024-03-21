@@ -1,5 +1,4 @@
-# deboraruth.me instagram pefoce
-
+import numpy as np
 import pandas as pd
 from methods import split, metric
 from models import knn, dmc
@@ -22,24 +21,61 @@ df = pd.read_csv("datasets/iris/Iris.csv")
 # [150 rows x 6 columns]
 
 
-def realizations(df: pd.DataFrame, model):
+def realizations(df: pd.DataFrame, model, times: int = 10):
     # metrics
     metric_set = metric.ClassifierMetric(label="setosa")
     metric_ver = metric.ClassifierMetric(label="versicolor")
     metric_vir = metric.ClassifierMetric(label="virginica")
+    all_predictions = []
 
-    for i in range(0, 10):
-        train, train_labels, test, test_labels = split.holdout(df[:10])
-        model.fit(train.to_numpy(), train_labels.to_numpy())
-        predictions = model.predict(test.to_numpy(), test_labels.to_numpy())
+    for i in range(1, times + 1):
+        print("\n# Realization", i)
+        train, test = split.holdout(df)
+        model.fit(train.to_numpy())
+        predictions = model.predict(test.to_numpy())
+        all_predictions.append(predictions)
+
         # map predictions to label_hit_miss
-        versicolor_hit_miss = [1, 0, 0]
-        virginica_hit_miss = [1, 0, 1]
-        setosa_hit_miss = [1, 1, 1]
+        versicolor_hit_miss = [
+            model.hitOrMiss(prediction)
+            for prediction in predictions
+            if prediction[0][-1] == "Iris-versicolor"
+        ]
+        virginica_hit_miss = [
+            model.hitOrMiss(prediction)
+            for prediction in predictions
+            if prediction[0][-1] == "Iris-virginica"
+        ]
+        setosa_hit_miss = [
+            model.hitOrMiss(prediction)
+            for prediction in predictions
+            if prediction[0][-1] == "Iris-setosa"
+        ]
 
+        # compute metrics for realization
         metric_ver.compute(versicolor_hit_miss)
         metric_vir.compute(virginica_hit_miss)
         metric_set.compute(setosa_hit_miss)
+
+        # show confusion matrix for realization
+        print(f"\nConfusion Matrix - Realization {i}")
+        print(
+            pd.crosstab(test["Species"], [prediction[1] for prediction in predictions])
+        )
+
+    metric_ver.log()
+    metric_vir.log()
+    metric_set.log()
+
+    print(
+        f"\nAccuracy: {(np.average(np.array([metric_set.accuracy, metric_ver.accuracy, metric_vir.accuracy]))):.2f}"
+    )
+    print(
+        f"Standard Deviation: {(np.average(np.array([metric_set.std, metric_ver.std, metric_vir.std]))):.2f}"
+    )
+
+    print(f"\n# Final Metrics after {times} realizations")
+    # TODO: show final confusion matrix with average hit and miss amount of all predictions
 
 
 realizations(df, knn.KNNClassifier(k=5))
