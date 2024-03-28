@@ -8,8 +8,9 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "assignment-1/main.py",
-            "console": "integratedTerminal"
+            "program": "assignment-1/source/main.py",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Clear terminal",
         }
     ]
 }
