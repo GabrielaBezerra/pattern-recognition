@@ -1,70 +1,65 @@
 import pandas as pd
-from methods import split, metric
-from models import knn, dmc
+import numpy as np
 
 
-def realizations(df: pd.DataFrame, model, split_method, split_proportion=0.7, times=10):
+def realizations(df: pd.DataFrame, model, split_method, times=10):
     """
     Perform multiple realizations of a pattern recognition experiment.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing the dataset.
         model: The pattern recognition model to be used.
-        split_method (str): The method for splitting the dataset into training and testing sets.
-            Currently supported methods are "holdout", "kfold", and "leaveoneout".
-        split_proportion (float, optional): The proportion of the dataset to be used for training
-            when using the "holdout" split method. Defaults to 0.7.
+        split_method: The method for splitting the dataset into training and testing sets.
         times (int, optional): The number of realizations to perform. Defaults to 10.
     """
-    # metrics
-    metric_set = metric.ClassifierMetric(label="setosa")
-    metric_ver = metric.ClassifierMetric(label="versicolor")
-    metric_vir = metric.ClassifierMetric(label="virginica")
 
+    hit_rates = {}
+
+    # Realizations loop
     for i in range(1, times + 1):
-        all_predictions = []
-        print("\n🍵 Realization", i)
+        print("\n# Realization", i)
 
-        if split_method == "holdout":
-            train, test = split.holdout(df, train_percent=split_proportion)
-        # Requires python 3.10 and later
-        # match split_method:
-        #     case "holdout":
-        #         train, test = split.holdout(df)
-        #     # case "kfold":
-        #     #     train, test = split.kfold(df, k=5)
-        #     # case "leaveoneout":
-        #     #     train, test = split.leaveoneout(df)
-        #     case _:
-        #         raise ValueError("Invalid split method")
-
+        train, test = split_method.split(df)
         model.fit(train.to_numpy())
-
         predictions = model.predict(test.to_numpy())
-        for pred in predictions:
-            if pred[0][-1] != pred[1]:
-                print(f"MISS {pred[1]}")
-        all_predictions.append(predictions)
 
-        # show confusion matrix for realization
-        confusion_matrix = pd.crosstab(
-            [prediction[1] for prediction in predictions],
-            [prediction[0][-1] for prediction in predictions],
+        # show confusion matrix for realization using crosstab without skipping indexes
+        confusion_matrix = confusion_matrix = pd.crosstab(
+            [prediction[1] for prediction in predictions], # true values
+            [prediction[0][-1] for prediction in predictions], # predicted values
+            rownames=["True"], colnames=["Predicted"],
+            dropna=False
         )
-        print(f"Confusion Matrix - Realization {i} \n{confusion_matrix}")
+        print(f"\nConfusion Matrix - Realization {i} \n{confusion_matrix}\n")
 
-        # # compute metrics for realization
-        # # TODO FIX: make hit rate from confusion matrix
-        # metric_ver.compute(versicolor_hit_miss)
-        # metric_vir.compute(virginica_hit_miss)
-        # metric_set.compute(setosa_hit_miss)
+        # Compute true and false values for each class from confusion matrix
+        true_positives = confusion_matrix.values.diagonal()
+        false_negatives = (confusion_matrix.sum(axis=1) - true_positives).to_numpy()
 
-    # print(
-    #     f"\nAccuracy: {(np.average(np.array([metric_set.accuracy, metric_ver.accuracy, metric_vir.accuracy]))):.2f}"
-    # )
-    # print(
-    #     f"Standard Deviation: {(np.average(np.array([metric_set.std, metric_ver.std, metric_vir.std]))):.2f}"
-    # )
+        # Compute hit or miss for each class
+        for i, label in enumerate(confusion_matrix.index):
+            hit_rate = true_positives[i] / (true_positives[i] + false_negatives[i])
+            print(f"Hit rate for {label}: {hit_rate:.2f}")
+            hit_rates[label] = hit_rates.get(label, []) + [hit_rate]
 
-    # print(f"\n# Final Metrics after {times} realizations")
-    # TODO: show final confusion matrix with average hit and miss amount of all predictions
+    print("\n# Final Metrics")
+    # Compute average hit rate for each class
+    for label, hit_rates_list in hit_rates.items():
+        avg_hit_rate = np.average(hit_rates_list)
+        print(f"Acurracy for {label} (average hit rate for {label}): {avg_hit_rate:.2f}")
+
+    # Compute overall average hit rate
+    overall_hit_rate = np.average([hit_rate for hit_rates_list in hit_rates.values() for hit_rate in hit_rates_list]) # flatten the dictionary
+    print(f"Overall Accuracy (overall average hit rate): {overall_hit_rate:.2f}")
+
+    # Compute standard deviation for each class
+    std_rates = {}
+    for label, hit_rates_list in hit_rates.items():
+        std_rate = np.std(hit_rates_list)
+        std_rates[label] = std_rate
+        print(f"Standard deviation for {label}: {std_rate:.2f}")
+    
+    # Compute overall standard deviation
+    overall_std_rate = np.std([hit_rate for hit_rates_list in hit_rates.values() for hit_rate in hit_rates_list]) # flatten the dictionary
+    print(f"Overall Standard Deviation: {overall_std_rate:.2f}")
+

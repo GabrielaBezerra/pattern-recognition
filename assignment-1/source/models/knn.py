@@ -1,6 +1,6 @@
 import numpy as np
-from methods.distances import euclidean_distance
 from collections import Counter
+from utils.distances import euclidean_distance
 
 
 class KNNClassifier:
@@ -41,7 +41,7 @@ class KNNClassifier:
         for newData in test:
             distances = euclidean_distance(self.memory[:, :-1], newData[:-1])
             sorted_indices = np.argsort(distances)
-            nearest_indices = sorted_indices[: self.k]
+            nearest_indices = sorted_indices[:self.k]
             # get memory rows from array of nearest indices
             nearest_labels = self.memory[nearest_indices]
             # convert nearest_labels to int type

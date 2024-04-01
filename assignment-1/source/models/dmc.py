@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter
-from methods.distances import euclidean_distance
+from utils.distances import euclidean_distance
 
 
 class DMCClassifier:
