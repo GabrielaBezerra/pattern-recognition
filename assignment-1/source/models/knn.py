@@ -1,4 +1,5 @@
 import numpy as np
+from methods.distances import euclidean_distance
 from collections import Counter
 
 
@@ -38,7 +39,7 @@ class KNNClassifier:
         print("k =", self.k)
         predictions: list[tuple[np.ndarray, str]] = []  # [(newData, prediction), ...]
         for newData in test:
-            distances = self.euclidean_distance(self.memory[:, :-1], newData[:-1])
+            distances = euclidean_distance(self.memory[:, :-1], newData[:-1])
             sorted_indices = np.argsort(distances)
             nearest_indices = sorted_indices[: self.k]
             # get memory rows from array of nearest indices
@@ -50,22 +51,6 @@ class KNNClassifier:
             prediction = nearest_labels_count.most_common(1)[0][0]
             predictions.append((newData, prediction))
         return predictions
-
-    def euclidean_distance(self, data1, data2):
-        """
-        Calculate the Euclidean distance between two sets of data.
-
-        Args:
-            data1 (np.ndarray): The first set of data.
-            data2 (np.ndarray): The second set of data.
-
-        Returns:
-            np.ndarray: The Euclidean distance between the two sets of data.
-        """
-        # convert data1 and data2 to float type
-        data1 = data1.astype(float)
-        data2 = data2.astype(float)
-        return np.sqrt(np.sum((data2 - data1) ** 2, axis=1))
 
     def hitOrMiss(self, prediction):
         """
