@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-from .metrics import ClassifierMetrics
 import matplotlib.pyplot as plt
+from utils import graphs
+from .metrics import ClassifierMetrics
 
 def realizations(df: pd.DataFrame, model, split, times=10, verbose=True):
     """
@@ -27,6 +28,13 @@ def realizations(df: pd.DataFrame, model, split, times=10, verbose=True):
             print(f"\n{model_name_for_print} \033[1;32m#{i} Realization\033[0m")
 
         train, test = split.split(df)
+        graphs.plot_database_after_split(
+            f"Realization {i}", 
+            train,
+            test,
+            feature_a=0,
+            feature_b=1
+        )
 
         if verbose:
             print(f"split_method={split.__class__.__name__} fit={len(train)} predict={len(test)}")
@@ -40,23 +48,23 @@ def realizations(df: pd.DataFrame, model, split, times=10, verbose=True):
         metrics.compute(predictions, verbose)
         
         # TODO: Plot the decision boundaries
-        x_min, x_max = train.iloc[:, 0].min(), train.iloc[:, 0].max() + 1
-        y_min, y_max = train.iloc[:, 1].min(), train.iloc[:, 1].max() + 1
-        xx, yy = np.meshgrid(np.arange(x_min, x_max), np.arange(y_min, y_max))
-        Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+        # x_min, x_max = train.iloc[:, 0].min(), train.iloc[:, 0].max() + 1
+        # y_min, y_max = train.iloc[:, 1].min(), train.iloc[:, 1].max() + 1
+        # xx, yy = np.meshgrid(np.arange(x_min, x_max), np.arange(y_min, y_max))
+        # Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
 
-        # Put the result into a color plot
-        Z = Z[0]
-        plt.figure()
-        plt.pcolormesh(xx, yy, Z, cmap="viridis")
+        # # Put the result into a color plot
+        # Z = Z[0]
+        # plt.figure()
+        # plt.pcolormesh(xx, yy, Z, cmap="viridis")
 
-        # Plot also the training points
-        plt.scatter(X[:, 0], X[:, 1], edgecolors='k', cmap="viridis")
-        plt.xlim(xx.min(), xx.max())
-        plt.ylim(yy.min(), yy.max())
-        plt.title(f"Realization {i}")
+        # # Plot also the training points
+        # plt.scatter(X[:, 0], X[:, 1], edgecolors='k', cmap="viridis")
+        # plt.xlim(xx.min(), xx.max())
+        # plt.ylim(yy.min(), yy.max())
+        # plt.title(f"Realization {i}")
 
-        plt.show()
+        # plt.show()
 
     print(f"\n{model_name_for_print} \033[1;34m# Final Metrics\033[0m")
     metrics.show_final_metrics()
