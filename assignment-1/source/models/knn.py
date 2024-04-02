@@ -13,6 +13,7 @@ class KNNClassifier:
         Args:
             k (int): The number of nearest neighbors to consider.
         """
+        self.name = "KNN"
         self.k = k
 
     def fit(self, train):
@@ -22,7 +23,6 @@ class KNNClassifier:
         Args:
             train (np.ndarray): The training data.
         """
-        print("fit in train\t", len(train))
         self.memory = train
 
     def predict(self, test):
@@ -35,8 +35,6 @@ class KNNClassifier:
         Returns:
             list[tuple[np.ndarray, str]]: A list of tuples containing the test data and the predicted labels.
         """
-        print("predict in test\t", len(test))
-        print("k =", self.k)
         predictions: list[tuple[np.ndarray, str]] = []  # [(newData, prediction), ...]
         for newData in test:
             distances = euclidean_distance(self.memory[:, :-1], newData[:-1])
@@ -51,17 +49,3 @@ class KNNClassifier:
             prediction = nearest_labels_count.most_common(1)[0][0]
             predictions.append((newData, prediction))
         return predictions
-
-    def hitOrMiss(self, prediction):
-        """
-        Check if the predicted label matches the expected label.
-
-        Args:
-            prediction (tuple): A tuple containing the expected label and the predicted label.
-
-        Returns:
-            int: 1 if the labels match, 0 otherwise.
-        """
-        expectedLabel = prediction[0][-1]
-        predictedLabel = prediction[1]
-        return 1 if expectedLabel == predictedLabel else 0

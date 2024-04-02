@@ -1,13 +1,11 @@
-from methods import experiments, split
+from methods import experiment, split
 from utils import databases
-from models import knn, dmc
+from models.knn import KNNClassifier
+from models.dmc import DMCClassifier
 
-df = databases.loadIris()#.groupby("Species").head(10)
+df = databases.loadIris()
 
-experiments.realizations(
-    df, split_method=split.Holdout(train_percent=0.8), model=knn.KNNClassifier(k=10), times=20
-)
-
-# experiments.realizations(
-#     df, split_method="holdout", split_proportion=0.7, model=dmc.DMCClassifier()
-# )
+for m in [KNNClassifier(k=10), DMCClassifier()]:
+    experiment.realizations(
+        df, split_method=split.Holdout(train_percent=0.8), model=m, times=20, verbose=True
+    )

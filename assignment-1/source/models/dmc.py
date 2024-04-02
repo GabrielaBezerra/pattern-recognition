@@ -1,10 +1,15 @@
 import numpy as np
-from collections import Counter
 from utils.distances import euclidean_distance
 
 
 class DMCClassifier:
-    memory: np.ndarray
+    centroids = {}
+
+    def __init__(self):
+        """
+        Initialize the DMCClassifier.
+        """
+        self.name = "DMC"
 
     def fit(self, train):
         """
@@ -13,17 +18,15 @@ class DMCClassifier:
         Args:
             train (np.ndarray): The training data.
         """
-        print("fit in train\t", len(train))
-        # compute centroids
-        centroids = {}
-        for row in train:
-            label = row[-1]
-            if label not in centroids:
-                centroids[label] = []
-            centroids[label].append(row[:-1])
-        for label in centroids:
-            centroids[label] = np.mean(centroids[label])
-        self.memory = centroids
+        # compute and store centroids for each class
+        for data in train:
+            label = data[-1]
+            if label not in self.centroids:
+                self.centroids[label] = data[:-1] # first data point
+            else:
+                self.centroids[label] = np.vstack((self.centroids[label], data[:-1])) # acumulate data points
+        for label in self.centroids:
+            self.centroids[label] = np.average(self.centroids[label], axis=0) # compute the centroid
 
     def predict(self, test):
         """
@@ -35,19 +38,9 @@ class DMCClassifier:
         Returns:
             list[tuple[np.ndarray, str]]: A list of tuples containing the test data and the predicted labels.
         """
-        print("predict in test\t", len(test))
         predictions: list[tuple[np.ndarray, str]] = []  # [(newData, prediction), ...]
         for newData in test:
-            for label in self.memory.keys():
-                distances = euclidean_distance(self.memory[label], newData[:-1])
-                sorted_indices = np.argsort(distances)
-                nearest_indices = sorted_indices[: self.k]
-                # get memory rows from array of nearest indices
-                nearest_labels = self.memory[nearest_indices]
-                # convert nearest_labels to int type
-                nearest_labels = nearest_labels
-                # get the most frequent label
-                nearest_labels_count = Counter(nearest_labels[:, -1])
-                prediction = nearest_labels_count.most_common(1)[0][0]
-                predictions.append((newData, prediction))
+            distances = euclidean_distance(np.array(list(self.centroids.values())), newData[:-1])
+            nearest_label = list(self.centroids.keys())[np.argmin(distances)]
+            predictions.append((newData, nearest_label))
         return predictions
