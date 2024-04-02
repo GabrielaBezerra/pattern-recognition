@@ -1,4 +1,3 @@
-from zmq import has
 from .metrics import ClassifierMetrics
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,7 +48,7 @@ def realizations(df, model, split, plot=None, times=10, verbose=True):
         # TODO: Plot the decision boundaries
         h = 0.5
         feat_a = 0
-        feat_b = 1
+        feat_b = 3
         x_min, x_max = (
             train.iloc[:, feat_a].min() - 0.25,
             train.iloc[:, feat_a].max() + 0.25,
@@ -92,7 +91,7 @@ def realizations(df, model, split, plot=None, times=10, verbose=True):
         plt.ylabel(train.columns[feat_b])
         plt.xlim(xx.min(), xx.max())
         plt.ylim(yy.min(), yy.max())
-        plt.title(f"{model.name} - Decision Boundary - Realization {i}")
+        plt.title(f"{model.name} - Decision Boundary - Realization {i-1}")
         # show all legends in the plot from num_labels
         if categorical_label:
             labels = [

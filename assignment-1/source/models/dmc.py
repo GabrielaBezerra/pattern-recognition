@@ -19,20 +19,19 @@ class DMCClassifier:
             train (np.ndarray): The training data.
         """
         # compute and store centroids for each class
+        self.centroids = {}
         for data in train:
             label = data[-1]
             if label not in self.centroids:
-                self.centroids[label] = data[:-1]  # first data point
+                self.centroids[label] = data[:-1]
             else:
-                self.centroids[label] = np.vstack(
-                    (self.centroids[label], data[:-1])
-                )  # acumulate data points
+                self.centroids[label] = np.vstack((self.centroids[label], data[:-1]))
         for label in self.centroids:
             self.centroids[label] = np.average(
                 self.centroids[label], axis=0
             )  # compute the centroid
 
-    def predict(self, test):
+    def predict(self, test, has_labels=True):
         """
         Predict the labels for the test data.
 
@@ -44,9 +43,14 @@ class DMCClassifier:
         """
         predictions: list[tuple[np.ndarray, str]] = []  # [(newData, prediction), ...]
         for newData in test:
-            distances = euclidean_distance(
-                np.array(list(self.centroids.values())), newData[:-1]
-            )
+            if has_labels:
+                distances = euclidean_distance(
+                    np.array(list(self.centroids.values())), newData[:-1]
+                )
+            else:
+                distances = euclidean_distance(
+                    np.array(list(self.centroids.values())), newData
+                )
             nearest_label = list(self.centroids.keys())[np.argmin(distances)]
             predictions.append((newData, nearest_label))
         return predictions
