@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class Holdout:
     def __init__(self, train_percent: float = 0.5):
         self.train_percent = train_percent

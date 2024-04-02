@@ -25,7 +25,7 @@ class KNNClassifier:
         """
         self.memory = train
 
-    def predict(self, test):
+    def predict(self, test, has_labels=True):
         """
         Predict the labels for the test data.
 
@@ -37,9 +37,12 @@ class KNNClassifier:
         """
         predictions: list[tuple[np.ndarray, str]] = []  # [(newData, prediction), ...]
         for newData in test:
-            distances = euclidean_distance(self.memory[:, :-1], newData[:-1])
+            if has_labels:
+                distances = euclidean_distance(self.memory[:, :-1], newData[:-1])
+            else:
+                distances = euclidean_distance(self.memory[:, :-1], newData)
             sorted_indices = np.argsort(distances)
-            nearest_indices = sorted_indices[:self.k]
+            nearest_indices = sorted_indices[: self.k]
             # get memory rows from array of nearest indices
             nearest_labels = self.memory[nearest_indices]
             # convert nearest_labels to int type

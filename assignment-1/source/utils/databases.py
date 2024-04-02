@@ -1,7 +1,9 @@
 import pandas as pd
 
+
 def loadArtificial(n=1):
     return pd.read_csv(f"datasets/artificial/artificial-{n}.csv")
+
 
 def loadColumn(binary=True):
     return pd.read_csv(
@@ -18,8 +20,9 @@ def loadColumn(binary=True):
         delimiter=" ",
     )
 
+
 def loadIris():
-    '''
+    """
     Load the Iris dataset from the datasets folder.
     The dataset has the following columns:
     - SepalLengthCm
@@ -31,7 +34,7 @@ def loadIris():
     Example:
     >>> df = loadIris()
     >>> print(df)
-    '''
+    """
     return pd.read_csv(
         "datasets/iris/iris.data",
         names=[

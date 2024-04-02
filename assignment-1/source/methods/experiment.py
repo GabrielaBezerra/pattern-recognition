@@ -1,10 +1,10 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from utils import graphs
+from zmq import has
 from .metrics import ClassifierMetrics
+import numpy as np
+import matplotlib.pyplot as plt
 
-def realizations(df: pd.DataFrame, model, split, times=10, verbose=True):
+
+def realizations(df, model, split, plot=None, times=10, verbose=True):
     """
     Perform multiple realizations of a pattern recognition experiment.
 
@@ -28,16 +28,15 @@ def realizations(df: pd.DataFrame, model, split, times=10, verbose=True):
             print(f"\n{model_name_for_print} \033[1;32m#{i} Realization\033[0m")
 
         train, test = split.split(df)
-        graphs.plot_database_after_split(
-            f"Realization {i}", 
-            train,
-            test,
-            feature_a=0,
-            feature_b=1
-        )
+        # if plot:
+        #     plot.show_database_after_split(
+        #         f"{model.name} - Realization {i}", train, test
+        #     )
 
         if verbose:
-            print(f"split_method={split.__class__.__name__} fit={len(train)} predict={len(test)}")
+            print(
+                f"split_method={split.__class__.__name__} fit={len(train)} predict={len(test)}"
+            )
             # Print amount of data for each label in train
             X = train.to_numpy()
             for label in train.iloc[:, -1].unique():
@@ -46,26 +45,76 @@ def realizations(df: pd.DataFrame, model, split, times=10, verbose=True):
         model.fit(train.to_numpy())
         predictions = model.predict(test.to_numpy())
         metrics.compute(predictions, verbose)
-        
+
         # TODO: Plot the decision boundaries
-        # x_min, x_max = train.iloc[:, 0].min(), train.iloc[:, 0].max() + 1
-        # y_min, y_max = train.iloc[:, 1].min(), train.iloc[:, 1].max() + 1
-        # xx, yy = np.meshgrid(np.arange(x_min, x_max), np.arange(y_min, y_max))
-        # Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+        h = 0.5
+        feat_a = 0
+        feat_b = 1
+        x_min, x_max = (
+            train.iloc[:, feat_a].min() - 0.25,
+            train.iloc[:, feat_a].max() + 0.25,
+        )
+        y_min, y_max = (
+            train.iloc[:, feat_b].min() - 0.25,
+            train.iloc[:, feat_b].max() + 0.25,
+        )
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+        if train.shape[1] > 3:
+            model.fit(train.iloc[:, [feat_a, feat_b, -1]].to_numpy())
+        else:
+            model.fit(train.to_numpy())
+        tuples_list = model.predict(np.c_[xx.ravel(), yy.ravel()], has_labels=False)
+        Z_list = [t[1] for t in tuples_list]
+        num_labels = {}
+        categorical_label = False
+        if isinstance(Z_list[0], str):
+            categorical_label = True
+            for i, label in enumerate(train.iloc[:, -1].unique()):
+                num_labels[label] = i
+                num_labels[i] = label
+            Z_num = [num_labels[z] for z in Z_list]
+        else:
+            Z_num = Z_list
+        Z = np.array(Z_num).reshape(xx.shape)
+        plt.contourf(xx, yy, Z, alpha=0.8)
 
-        # # Put the result into a color plot
-        # Z = Z[0]
-        # plt.figure()
-        # plt.pcolormesh(xx, yy, Z, cmap="viridis")
-
-        # # Plot also the training points
-        # plt.scatter(X[:, 0], X[:, 1], edgecolors='k', cmap="viridis")
-        # plt.xlim(xx.min(), xx.max())
-        # plt.ylim(yy.min(), yy.max())
-        # plt.title(f"Realization {i}")
-
-        # plt.show()
+        if isinstance(train.iloc[0, -1], str):
+            colors = [num_labels[label] for label in train.iloc[:, -1]]
+        else:
+            colors = train.iloc[:, -1]
+        scatter = plt.scatter(
+            train.iloc[:, feat_a],
+            train.iloc[:, feat_b],
+            c=colors,
+            edgecolors="k",
+        )
+        plt.xlabel(train.columns[feat_a])
+        plt.ylabel(train.columns[feat_b])
+        plt.xlim(xx.min(), xx.max())
+        plt.ylim(yy.min(), yy.max())
+        plt.title(f"{model.name} - Decision Boundary - Realization {i}")
+        # show all legends in the plot from num_labels
+        if categorical_label:
+            labels = [
+                f"{num_labels[int(''.join(i for i in value if i.isdigit()))]} ({value})"
+                for value in scatter.legend_elements()[1]
+            ]
+        else:
+            labels = scatter.legend_elements()[1]
+        plt.legend(
+            handles=scatter.legend_elements()[0],
+            labels=labels,
+            title=train.columns[-1],
+        )
+        # else:
+        #     plt.legend(
+        #         handles=scatter.legend_elements()[0],
+        #         labels=scatter.legend_elements()[1],
+        #         title=train.columns[-1],
+        #     )
+        plt.tight_layout()
+        plt.show(block=True)
+        plt.close()
 
     print(f"\n{model_name_for_print} \033[1;34m# Final Metrics\033[0m")
     metrics.show_final_metrics()
-
