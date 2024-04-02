@@ -1,5 +1,22 @@
 import pandas as pd
 
+def loadArtificial(n=1):
+    return pd.read_csv(f"datasets/artificial/artificial-{n}.csv")
+
+def loadColumn(binary=True):
+    return pd.read_csv(
+        f"datasets/coluna/column_{2 if binary else 3}C.dat",
+        names=[
+            "PelvicIncidence",
+            "PelvicTilt",
+            "LumbarLordosisAngle",
+            "SacralSlope",
+            "PelvicRadius",
+            "DegreeOfSpondylolisthesis",
+            "Class",
+        ],
+        delimiter=" ",
+    )
 
 def loadIris():
     '''
@@ -15,7 +32,7 @@ def loadIris():
     >>> df = loadIris()
     >>> print(df)
     '''
-    df = pd.read_csv(
+    return pd.read_csv(
         "datasets/iris/iris.data",
         names=[
             "SepalLengthCm",
@@ -25,4 +42,3 @@ def loadIris():
             "Species",
         ],
     )
-    return df
