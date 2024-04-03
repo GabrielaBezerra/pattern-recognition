@@ -4,8 +4,7 @@ import pandas as pd
 
 class ClassifierMetrics:
     def __init__(self):
-        self.hit_rates = {}
-        self.std_rates = {}
+        self.all_hit_rates = {}
 
     def confusion_matrix(self, predictions: list[tuple[np.ndarray, str]]):
         return pd.crosstab(
@@ -16,73 +15,56 @@ class ClassifierMetrics:
             dropna=False,
         )
 
-    def compute(self, predictions, verbose):
-        confusion_matrix = self.confusion_matrix(predictions)
-        if verbose:
-            print(f"\nConfusion Matrix: \n{confusion_matrix}\n")
+    def compute(self, predictions):
+        hit_miss_realization = {}
+        hit_rates_realization = {"All": 0.0}
+        std_dict_realization = {"All": 0.0}
 
-        # Compute true and false values for each class from confusion matrix
+        confusion_matrix = self.confusion_matrix(predictions)
         true_positives = confusion_matrix.values.diagonal()
         false_negatives = (confusion_matrix.sum(axis=1) - true_positives).to_numpy()
 
-        # For each class
+        all_positives = np.sum(true_positives)
+        all_negatives = np.sum(false_negatives)
+        all_hit_rate_realization = all_positives / (all_positives + all_negatives)
+        hit_rates_realization["All"] = all_hit_rate_realization
+        self.all_hit_rates["All"] = self.all_hit_rates.get("All", []) + [
+            all_hit_rate_realization
+        ]
+
         for i, label in enumerate(confusion_matrix.index):
             # Compute Hit Rate
             hit_rate = true_positives[i] / (true_positives[i] + false_negatives[i])
-            if verbose:
-                print(f"Hit rate for {label}: {hit_rate:.2f}")
-            self.hit_rates[label] = self.hit_rates.get(label, []) + [hit_rate]
+            hit_rates_realization[label] = hit_rate
+            self.all_hit_rates[label] = self.all_hit_rates.get(label, []) + [hit_rate]
 
-            # Compute Standard Deviation
-            hit_miss = []
+            # Compute Hit Miss for Standard Deviation
+            hit_miss_realization[label] = []
             for _ in range(0, true_positives[i]):
-                hit_miss.append(1)
+                hit_miss_realization[label].append(1)
             for _ in range(0, false_negatives[i]):
-                hit_miss.append(0)
-            std = np.std(hit_miss)
-            self.std_rates[label] = self.std_rates.get(label, []) + [std]
-            if verbose:
-                print(f"Std rate for {label}: {std:.2f}")
+                hit_miss_realization[label].append(0)
 
-    def show_final_metrics(self):
-        # Compute overall average hit rate
-        overall_hit_rate = np.average(
-            [
-                hit_rate
-                for hit_rates_list in self.hit_rates.values()
-                for hit_rate in hit_rates_list
-            ]
-        )  # flatten the dictionary
-        print(f"\nOverall Accuracy:  {overall_hit_rate:.2f}")
+        std_dict_realization["All"] = float(
+            np.std([item for list in hit_miss_realization.values() for item in list])
+        )
+        for label in hit_miss_realization.keys():
+            std_dict_realization[label] = float(np.std(hit_miss_realization[label]))
+
+        return (confusion_matrix, hit_rates_realization, std_dict_realization)
+
+    def compute_final_metrics(self):
+        final_accuracies = {}
+        final_std = {}
 
         # Compute average hit rate for each class
-        for label, hit_rates_list in self.hit_rates.items():
+        for label, hit_rates_list in self.all_hit_rates.items():
             avg_hit_rate = np.average(hit_rates_list)
-            print(f"Acurracy for {label}: {avg_hit_rate:.2f}")
+            final_accuracies[label] = avg_hit_rate
 
-        # Compute overall standard deviation from hit_rates
-        # overall_std_rate = np.std([hit_rate for hit_rates_list in self.hit_rates.values() for hit_rate in hit_rates_list]) # flatten the dictionary
-        # print(f"\nOverall Standard Deviation:  {overall_std_rate:.2f}")
+        # Compute standard deviation from hit rates for each class
+        for label, hit_rates_list in self.all_hit_rates.items():
+            std = np.std(hit_rates_list)
+            final_std[label] = std
 
-        # Compute standard deviation for each class
-        # std of hit_rates
-        # for label, hit_rates_list in self.hit_rates.items():
-        #     std_rate = np.std(hit_rates_list)
-        #     self.std_rates[label] = std_rate
-        #     print(f"Standard deviation for {label}: {std_rate:.2f}")
-
-        # Compute overall standard deviation from all std_rates
-        overall_std_rate = np.std(
-            [
-                std_rate
-                for std_rates_list in self.std_rates.values()
-                for std_rate in std_rates_list
-            ]
-        )  # flatten the dictionary
-        print(f"\nOverall Standard Deviation:  {overall_std_rate:.2f}")
-
-        # Compute standard deviation for each class
-        # std of std_rates
-        for label, std_rate_list in self.std_rates.items():
-            std_rate = np.std(std_rate_list)
-            print(f"Standard deviation for {label}: {std_rate:.2f}")
+        return {"Accuracy": final_accuracies, "Standard Deviation": final_std}

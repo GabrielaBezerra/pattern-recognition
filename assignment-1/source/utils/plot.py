@@ -1,14 +1,23 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 
 
 class Plot:
-    def __init__(self, feature_a: int, feature_b: int, delay=1):
-        self.feature_a = feature_a
-        self.feature_b = feature_b
+    def __init__(
+        self,
+        database_name: str,
+        features: tuple[int, int],
+        delay=3,
+        decision_boundary_step=0.1,
+    ):
+        self.database_name = database_name
+        self.feature_a = features[0]
+        self.feature_b = features[1]
         self.delay = delay
+        self.decision_boundary_step = decision_boundary_step
 
-    def show_database_after_split(self, title, train, test):
+    def show_database_after_split(self, model, r, train, test):
         # Copy properties to variables
         feature_a = self.feature_a
         feature_b = self.feature_b
@@ -55,11 +64,90 @@ class Plot:
         x_max = train.iloc[:, feature_a].max()
         y_min = train.iloc[:, feature_b].min()
         y_max = train.iloc[:, feature_b].max()
-        ax.set(xlim=(x_min - 1, x_max + 1), ylim=(y_min - 1, y_max + 1))
+        ax.set(xlim=(x_min - 0.25, x_max + 0.25), ylim=(y_min - 0.25, y_max + 0.25))
         ax.set(xlabel=feat_name_a, ylabel=feat_name_b)
-        plt.title(title)
+        plt.title(f"Split - {model.name} - {self.database_name} - R{r}")
         plt.grid(True)
-        plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=2)
+        plt.legend(
+            title=train.columns[-1],
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+            shadow=True,
+            ncol=2,
+        )
+        plt.tight_layout()
+        plt.show(block=False)
+        if self.delay > 0:
+            plt.pause(self.delay)
+        plt.close()
+
+    def show_decision_boundary(self, model, r, df):
+        feat_a = self.feature_a
+        feat_b = self.feature_b
+        step = self.decision_boundary_step
+
+        x_min, x_max = (
+            df.iloc[:, feat_a].min() - 0.25,
+            df.iloc[:, feat_a].max() + 0.25,
+        )
+        y_min, y_max = (
+            df.iloc[:, feat_b].min() - 0.25,
+            df.iloc[:, feat_b].max() + 0.25,
+        )
+        xx, yy = np.meshgrid(
+            np.arange(x_min, x_max, step), np.arange(y_min, y_max, step)
+        )
+        if df.shape[1] > 3:
+            model.fit(df.iloc[:, [feat_a, feat_b, -1]].to_numpy())
+        else:
+            model.fit(df.to_numpy())
+        tuples_list = model.predict(np.c_[xx.ravel(), yy.ravel()], has_labels=False)
+        Z_list = [t[1] for t in tuples_list]
+        num_labels = {}
+        categorical_label = False
+        if isinstance(Z_list[0], str):
+            categorical_label = True
+            for i, label in enumerate(df.iloc[:, -1].unique()):
+                num_labels[label] = i
+                num_labels[i] = label
+            Z_num = [num_labels[z] for z in Z_list]
+        else:
+            Z_num = Z_list
+        Z = np.array(Z_num).reshape(xx.shape)
+        plt.contourf(xx, yy, Z, alpha=0.8)
+
+        if isinstance(df.iloc[0, -1], str):
+            colors = [num_labels[label] for label in df.iloc[:, -1]]
+        else:
+            colors = df.iloc[:, -1]
+        scatter = plt.scatter(
+            df.iloc[:, feat_a],
+            df.iloc[:, feat_b],
+            c=colors,
+            edgecolors="k",
+        )
+        plt.xlabel(df.columns[feat_a])
+        plt.ylabel(df.columns[feat_b])
+        plt.xlim(xx.min(), xx.max())
+        plt.ylim(yy.min(), yy.max())
+        plt.title(f"Decision Boundary - {model.name} - {self.database_name} - R{r}")
+        # show all legends in the plot from num_labels
+        if categorical_label:
+            labels = [
+                f"{num_labels[int(''.join(i for i in value if i.isdigit()))]} ({value})"
+                for value in scatter.legend_elements()[1]
+            ]
+        else:
+            labels = scatter.legend_elements()[1]
+        plt.legend(
+            handles=scatter.legend_elements()[0],
+            labels=labels,
+            title=f"Train {df.columns[-1]}",
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+            shadow=True,
+            ncol=2,
+        )
         plt.tight_layout()
         plt.show(block=False)
         if self.delay > 0:
