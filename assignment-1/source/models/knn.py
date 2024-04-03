@@ -22,11 +22,8 @@ class KNNClassifier:
                 distances = euclidean_distance(self.memory[:, :-1], newData)
             sorted_indices = np.argsort(distances)
             nearest_indices = sorted_indices[: self.k]
-            # get memory rows from array of nearest indices
             nearest_labels = self.memory[nearest_indices]
-            # convert nearest_labels to int type
             nearest_labels = nearest_labels
-            # get the most frequent label
             nearest_labels_count = Counter(nearest_labels[:, -1])
             prediction = nearest_labels_count.most_common(1)[0][0]
             predictions.append((newData, prediction))
