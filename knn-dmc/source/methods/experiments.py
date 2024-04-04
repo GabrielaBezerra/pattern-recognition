@@ -1,4 +1,4 @@
-from utils import databases
+from utils import databases, log
 from utils.plot import Plot
 
 
@@ -8,29 +8,40 @@ class Experiment:
         self.df = df
         self.plot = plot
 
-    def realizations(self, model, split, times, metrics, log):
+    def realizations(
+        self,
+        model,
+        split,
+        times,
+        metrics,
+        plot_train_test=False,
+        plot_decision_boundary=False,
+        plot_delay=1,
+    ):
         for r in range(1, times + 1):
             train, test = split.split(self.df)
 
-            self.plot.show_database_after_split(
-                model,
-                r,
-                train,
-                test,
-                delay=1,
-            )
+            if plot_train_test:
+                self.plot.show_database_after_split(
+                    model,
+                    r,
+                    train,
+                    test,
+                    delay=plot_delay,
+                )
 
             model.fit(train.to_numpy())
             predictions = model.predict(test.to_numpy())
             realization_metrics = metrics.compute(predictions)
             log.realization_details(r, model, split, train, test, realization_metrics)
 
-            self.plot.show_decision_boundary(
-                model,
-                r,
-                train,
-                delay=1,
-            )
+            if plot_decision_boundary:
+                self.plot.show_decision_boundary(
+                    model,
+                    r,
+                    train,
+                    delay=plot_delay,
+                )
 
         final_metrics = metrics.compute_final_metrics()
 

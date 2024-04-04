@@ -3,10 +3,10 @@ from methods.split import Holdout
 from methods.metrics import ClassifierMetrics
 from models.knn import KNNClassifier
 from models.dmc import DMCClassifier
-from utils.logs import Logs
+from utils import log
 import numpy as np
 
-log = Logs(verbose=True)
+log.verbose = False
 
 for exp in experiments.main:
     log.database(exp.database_name)
@@ -18,7 +18,9 @@ for exp in experiments.main:
         split=Holdout(train_percent=0.8),
         times=20,
         metrics=ClassifierMetrics(),
-        log=log,
+        plot_train_test=False,
+        plot_decision_boundary=False,
+        plot_delay=1,
     )
 
     dmc = DMCClassifier()
@@ -28,5 +30,7 @@ for exp in experiments.main:
         split=Holdout(train_percent=0.8),
         times=20,
         metrics=ClassifierMetrics(),
-        log=log,
+        plot_train_test=False,
+        plot_decision_boundary=False,
+        plot_delay=1,
     )
