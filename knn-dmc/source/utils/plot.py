@@ -8,16 +8,14 @@ class Plot:
         self,
         database_name: str,
         features: tuple[int, int],
-        delay=3,
         decision_boundary_step=0.1,
     ):
         self.database_name = database_name
         self.feature_a = features[0]
         self.feature_b = features[1]
-        self.delay = delay
         self.decision_boundary_step = decision_boundary_step
 
-    def show_database_after_split(self, model, r, train, test):
+    def show_database_after_split(self, model, r, train, test, delay=0):
         # Copy properties to variables
         feature_a = self.feature_a
         feature_b = self.feature_b
@@ -76,12 +74,15 @@ class Plot:
             ncol=2,
         )
         plt.tight_layout()
-        plt.show(block=False)
-        if self.delay > 0:
-            plt.pause(self.delay)
-        plt.close()
+        plt.tight_layout()
+        if delay > 0:
+            plt.show(block=False)
+            plt.pause(delay)
+            plt.close()
+        else:
+            plt.show(block=True)
 
-    def show_decision_boundary(self, model, r, df):
+    def show_decision_boundary(self, model, r, df, delay=0):
         feat_a = self.feature_a
         feat_b = self.feature_b
         step = self.decision_boundary_step
@@ -149,7 +150,9 @@ class Plot:
             ncol=2,
         )
         plt.tight_layout()
-        plt.show(block=False)
-        if self.delay > 0:
-            plt.pause(self.delay)
-        plt.close()
+        if delay > 0:
+            plt.show(block=False)
+            plt.pause(delay)
+            plt.close()
+        else:
+            plt.show(block=True)

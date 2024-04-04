@@ -5,6 +5,7 @@ import pandas as pd
 class ClassifierMetrics:
     def __init__(self):
         self.all_hit_rates = {}
+        self.worst_confusion_matrix = {}
 
     def confusion_matrix(self, predictions: list[tuple[np.ndarray, str]]):
         return pd.crosstab(
@@ -51,6 +52,12 @@ class ClassifierMetrics:
         for label in hit_miss_realization.keys():
             std_dict_realization[label] = float(np.std(hit_miss_realization[label]))
 
+        # check if hit_rate_realization["All"] is worse than all the hit_rates in the self.all_hit_rate["All"]
+        if len(self.all_hit_rates["All"]) == 1 or hit_rates_realization["All"] < min(
+            self.all_hit_rates["All"]
+        ):
+            self.worst_confusion_matrix = confusion_matrix
+
         return (confusion_matrix, hit_rates_realization, std_dict_realization)
 
     def compute_final_metrics(self):
@@ -66,5 +73,8 @@ class ClassifierMetrics:
         for label, hit_rates_list in self.all_hit_rates.items():
             std = np.std(hit_rates_list)
             final_std[label] = std
+
+        print("\nWorst Confusion Matrix:")
+        print(self.worst_confusion_matrix)
 
         return {"Accuracy": final_accuracies, "Standard Deviation": final_std}
