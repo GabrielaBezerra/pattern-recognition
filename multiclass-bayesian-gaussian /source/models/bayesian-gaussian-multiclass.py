@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # The provided Python code defines a class BayesianGaussianMulticlass for a multiclass classification model based on the Bayesian Gaussian method. This method is a type of probabilistic model that uses Bayes' theorem and assumes that the data from each class is drawn from a simple Gaussian distribution. The model calculates the posterior probability of each class for a given data point and makes predictions based on the class with the highest posterior probability. The model is trained on a dataset with multiple classes and can predict the class labels for new data points. The class has methods for fitting the model to the training data and making predictions on new data points.
@@ -72,3 +73,29 @@ class BayesianGaussianMulticlass:
         return np.exp(-0.5 * np.dot(x, np.dot(np.linalg.inv(cov), x))) / np.sqrt(
             np.linalg.det(cov)
         )
+
+
+# plot 3D gaussian for each class
+def plot_gaussian_3d(class_means, class_covs):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    for i in range(len(class_means)):
+        mean = class_means[i]
+        cov = class_covs[i]
+        x, y = np.mgrid[-10:10:0.1, -10:10:0.1]
+        pos = np.dstack((x, y))
+        rv = multivariate_normal(mean, cov)
+        ax.plot_surface(x, y, rv.pdf(pos), alpha=0.5)
+
+    plt.show()
+
+
+# multivariate normal
+def multivariate_normal(mean, cov):
+    def pdf(x):
+        return np.exp(
+            -0.5 * np.dot(x - mean, np.dot(np.linalg.inv(cov), x - mean))
+        ) / np.sqrt(np.linalg.det(cov) * (2 * np.pi) ** len(mean))
+
+    return pdf
