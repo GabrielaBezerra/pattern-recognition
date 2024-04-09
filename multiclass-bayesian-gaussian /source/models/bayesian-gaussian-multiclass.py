@@ -16,14 +16,19 @@ class BayesianGaussianMulticlass:
         # The np.unique function is used to find the unique elements of an array.
         self.classes = np.unique(train[:, -1])
         # The np.zeros function is used to create a new array of given shape and type, filled with zeros.
+        # class_priors are the proportion of data points belonging to each class
         self.class_priors = np.zeros(len(self.classes))
+        # class_means are the mean of the data points for each class
         self.class_means = np.zeros((len(self.classes), train.shape[1] - 1))
+        # class_covs are the covariance of the data points for each class
         self.class_covs = np.zeros(
             (len(self.classes), train.shape[1] - 1, train.shape[1] - 1)
         )
         # The enumerate function is a built-in function of Python.
         for i, c in enumerate(self.classes):
+            # data is the data points for each class
             data = train[train[:, -1] == c][:, :-1]
+            # storing the class priors, means, and covariances for each class
             self.class_priors[i] = len(data) / len(train)
             self.class_means[i] = np.mean(
                 data, axis=0
@@ -40,22 +45,30 @@ class BayesianGaussianMulticlass:
                 data = newData[:-1]
             else:
                 data = newData
+            # posteriors are the posterior probability for each class
             posteriors = np.zeros(len(self.classes))
             for i, c in enumerate(self.classes):
+                # accessing the class priors, means, and covariances
                 prior = self.class_priors[i]
                 mean = self.class_means[i]
                 cov = self.class_covs[i]
+                # calculating the likelihood of the data point under the class's Gaussian distribution
                 likelihood = self._multivariate_gaussian(data, mean, cov)
+                # calculating the posterior probability
                 posteriors[i] = prior * likelihood
+            # choosing the class with the highest posterior probability as the prediction
             prediction = self.classes[
                 np.argmax(posteriors)
             ]  # The np.argmax function is used to find the indices of the maximum values along an axis.
+            # storing the new data points and their predicted class labels
             predictions.append((newData, prediction))
         return predictions
 
     # The _multivariate_gaussian method is a helper method used to calculate the likelihood of a data point under a multivariate Gaussian distribution. It takes a data point x, a mean vector mean, and a covariance matrix cov as input, and returns the likelihood of x under the Gaussian distribution defined by mean and cov. The method uses the formula for the multivariate Gaussian distribution to calculate the likelihood. The method is used in the predict method to calculate the likelihood of a data point under each class's Gaussian distribution. The method calculates the exponential term of the Gaussian distribution and normalizes it by the determinant of the covariance matrix.
     def _multivariate_gaussian(self, x, mean, cov):
+        # calculating the likelihood of the data point under the Gaussian distribution
         x = x - mean
+        # calculating the exponential term of the Gaussian distribution and normalizing it by the determinant of the covariance matrix
         return np.exp(-0.5 * np.dot(x, np.dot(np.linalg.inv(cov), x))) / np.sqrt(
             np.linalg.det(cov)
         )
