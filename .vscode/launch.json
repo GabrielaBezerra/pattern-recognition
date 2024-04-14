@@ -8,9 +8,10 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "knn-dmc/source/main.py",
+            "program": "multivariate-bayesian-gaussian/source/main.py",
             "console": "integratedTerminal",
             "preLaunchTask": "Clear terminal",
+            "justMyCode": false
         }
     ]
 }

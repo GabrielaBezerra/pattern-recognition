@@ -1,5 +1,6 @@
 from utils import databases, log
 from utils.plot import Plot
+from methods.preprocessing import Preprocessing
 
 
 class Experiment:
@@ -16,8 +17,16 @@ class Experiment:
         metrics,
         plot_train_test=False,
         plot_decision_boundary=False,
+        plot_gaussians=False,
         plot_delay=1,
     ):
+        self.df = (
+            Preprocessing(self.df)
+            .removing_rows_with_empty_features()
+            .transforming_columns_to_numerical()
+            .preprocessed_dataframe
+        )
+
         for r in range(1, times + 1):
             train, test = split.split(self.df)
 
@@ -37,6 +46,14 @@ class Experiment:
 
             if plot_decision_boundary:
                 self.plot.show_decision_boundary(
+                    model,
+                    r,
+                    train,
+                    delay=plot_delay,
+                )
+
+            if plot_gaussians:
+                self.plot.show_gaussian_3d(
                     model,
                     r,
                     train,
@@ -82,6 +99,15 @@ main = [
         plot=Plot(
             database_name="Column 3D (0,1)",
             features=(4, 5),
+            decision_boundary_step=0.5,
+        ),
+    ),
+    Experiment(
+        database_name="Dermatology",
+        df=databases.loadDermatology(),
+        plot=Plot(
+            database_name="Dermatology (0,1)",
+            features=(0, 1),
             decision_boundary_step=0.5,
         ),
     ),
@@ -141,6 +167,19 @@ column_3d = [
         ),
     )
     for permutation in create_permutations(range(6))
+]
+
+dermatology = [
+    Experiment(
+        database_name="Dermatology",
+        df=databases.loadDermatology(),
+        plot=Plot(
+            database_name="Dermatology",
+            features=permutation,
+            decision_boundary_step=0.5,
+        ),
+    )
+    for permutation in create_permutations(range(20))
 ]
 
 aditional = artificial + iris + column_2d + column_3d
