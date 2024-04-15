@@ -22,8 +22,10 @@ class Experiment:
     ):
         self.df = (
             Preprocessing(self.df)
+            # .removing_features_with_missing_values()
             .removing_rows_with_empty_features()
             .transforming_columns_to_numerical()
+            .removing_identical_rows()
             .preprocessed_dataframe
         )
 
@@ -175,11 +177,23 @@ dermatology = [
         df=databases.loadDermatology(),
         plot=Plot(
             database_name="Dermatology",
-            features=permutation,
-            decision_boundary_step=0.5,
+            features=(0, 1),
+            decision_boundary_step=0.05,
         ),
     )
-    for permutation in create_permutations(range(20))
+    # for permutation in create_permutations(range(34))
+]
+
+breast_cancer = [
+    Experiment(
+        database_name="Breast Cancer",
+        df=databases.loadBreastCancer(),
+        plot=Plot(
+            database_name="Breast Cancer",
+            features=(0, 1),
+            decision_boundary_step=0.05,
+        ),
+    )
 ]
 
 aditional = artificial + iris + column_2d + column_3d

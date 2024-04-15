@@ -67,10 +67,14 @@ class BayesianGaussianMultivariate:
 
     # The _multivariate_gaussian method is a helper method used to calculate the likelihood of a data point under a multivariate Gaussian distribution. It takes a data point x, a mean vector mean, and a covariance matrix cov as input, and returns the likelihood of x under the Gaussian distribution defined by mean and cov. The method uses the formula for the multivariate Gaussian distribution to calculate the likelihood. The method is used in the predict method to calculate the likelihood of a data point under each class's Gaussian distribution. The method calculates the exponential term of the Gaussian distribution and normalizes it by the determinant of the covariance matrix.
     def _multivariate_gaussian(self, x, mean, cov):
-        # calculating the likelihood of the data point under the Gaussian distribution
-        x = x - mean
-        # calculating the exponential term of the Gaussian distribution and normalizing it by the determinant of the covariance matrix
-        # TODO: check formula over here
-        return np.exp(-0.5 * np.dot(x, np.dot(np.linalg.inv(cov), x))) / np.sqrt(
-            np.linalg.det(cov)
+        # apply regularization to the covariance matrix to avoid singular matrix
+        cov += np.eye(cov.shape[0]) * 1e-6
+        # calculating the exponential term of the Gaussian distribution
+        exp_term = np.exp(
+            -0.5 * np.dot(np.dot((x - mean).T, np.linalg.inv(cov)), (x - mean))
         )
+        # normalizing by the determinant of the covariance matrix
+        likelihood = exp_term / np.sqrt(
+            np.linalg.det(cov) * (2 * np.pi) ** (len(x) / 2)
+        )
+        return likelihood

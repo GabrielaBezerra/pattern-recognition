@@ -76,3 +76,22 @@ def loadDermatology():
         ],
         delimiter=",",
     )
+
+
+def loadBreastCancer():
+    return pd.read_csv(
+        "datasets/breast-cancer/breast-cancer.data",
+        names=[
+            "Class",
+            "age",
+            "menopause",
+            "tumor-size",
+            "inv-nodes",
+            "node-caps",
+            "deg-malig",
+            "breast",
+            "breast-quad",
+            "irradiat",
+        ],
+        delimiter=",",
+    )

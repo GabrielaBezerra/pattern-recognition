@@ -7,7 +7,7 @@ from models.bayesian_gaussian_multivariate import BayesianGaussianMultivariate
 from utils import log
 import numpy as np
 
-log.verbose = False
+log.verbose = True
 
 for exp in experiments.dermatology:
     log.database(exp.database_name)
@@ -41,10 +41,10 @@ for exp in experiments.dermatology:
     exp.realizations(
         model=bayesGausMulti,
         split=Holdout(train_percent=0.8),
-        times=3,
+        times=20,
         metrics=ClassifierMetrics(),
         plot_train_test=False,
-        plot_decision_boundary=True,
-        plot_gaussians=True,
-        plot_delay=0,
+        plot_decision_boundary=False,
+        plot_gaussians=False,
+        plot_delay=2,
     )

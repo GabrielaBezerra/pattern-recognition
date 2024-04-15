@@ -8,13 +8,18 @@ class ClassifierMetrics:
         self.worst_confusion_matrix = {}
 
     def confusion_matrix(self, predictions: list[tuple[np.ndarray, str]]):
-        return pd.crosstab(
+        m = pd.crosstab(
             [prediction[1] for prediction in predictions],  # true values
             [prediction[0][-1] for prediction in predictions],  # predicted values
             rownames=["True"],
             colnames=["Predicted"],
             dropna=False,
         )
+        # fill empty classes with zeros to make m symmetric
+        # for label in set(m.index).symmetric_difference(set(m.columns)):
+        #     m[label] = 0
+        #     m.loc[label] = 0
+        return m
 
     def compute(self, predictions):
         hit_miss_realization = {}
