@@ -9,7 +9,7 @@ import numpy as np
 
 log.verbose = True
 
-for exp in experiments.column_2d:
+for exp in experiments.main:
     log.database(exp.database_name)
 
     knn = KNNClassifier(k=int(np.sqrt(len(exp.df))))

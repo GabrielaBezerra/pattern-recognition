@@ -52,9 +52,15 @@ class Experiment:
                     train,
                     delay=plot_delay,
                 )
+                self.plot.show_decision_boundary_3d(
+                    model,
+                    r,
+                    train,
+                    delay=plot_delay,
+                )
 
             if plot_gaussians:
-                self.plot.show_gaussian_3d(
+                self.plot.show_gaussian_curves_3d(
                     model,
                     r,
                     train,

@@ -157,7 +157,7 @@ class Plot:
         else:
             plt.show(block=True)
 
-    def show_gaussian_3d(self, model, r, df, delay=0):
+    def show_decision_boundary_3d(self, model, r, df, delay=0):
         feat_a = self.feature_a
         feat_b = self.feature_b
         step = self.decision_boundary_step
@@ -190,6 +190,42 @@ class Plot:
         ax.set_ylim(yy.min(), yy.max())
         ax.set_title(f"Gaussian 3D - {model.name} - {self.database_name} - R{r}")
         # show all legends in the plot from num_labels
+        if delay > 0:
+            plt.show(block=False)
+            plt.pause(delay)
+            plt.close()
+        else:
+            plt.show(block=True)
+
+    def show_gaussian_curves_3d(self, model, r, df, delay=0):
+        ax = plt.axes(projection="3d")
+        ax.set_xlabel(df.columns[self.feature_a])
+        ax.set_ylabel(df.columns[self.feature_b])
+        ax.set_zlabel("Probability Density")
+        ax.set_title(f"Gaussian Curves - {model.name} - {self.database_name} - R{r}")
+
+        for i, c in enumerate(model.classes):
+            data = df[df.iloc[:, -1] == c].iloc[:, :-1]
+            mean = model.class_means[i]
+            cov = model.class_covs[i]
+            x = np.linspace(
+                data.iloc[:, self.feature_a].min(),
+                data.iloc[:, self.feature_a].max(),
+                100,
+            )
+            y = np.linspace(
+                data.iloc[:, self.feature_b].min(),
+                data.iloc[:, self.feature_b].max(),
+                100,
+            )
+            X, Y = np.meshgrid(x, y)
+            Z = np.zeros(X.shape)
+            for j in range(X.shape[0]):
+                for k in range(X.shape[1]):
+                    Z[j, k] = model._multivariate_gaussian(
+                        np.array([X[j, k], Y[j, k]]), mean, cov
+                    )
+            ax.plot_surface(X, Y, Z, alpha=0.5)
         if delay > 0:
             plt.show(block=False)
             plt.pause(delay)
