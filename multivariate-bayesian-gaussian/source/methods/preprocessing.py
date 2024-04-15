@@ -25,7 +25,10 @@ class Preprocessing:
     def transforming_columns_to_numerical(self):
         for i in range(len(self.df.columns)):
             if self.df.iloc[:, i].dtype == "O":
-                self.df.iloc[:, i] = pd.to_numeric(self.df.iloc[:, i])
-                # self.df.iloc[:, i] = pd.Categorical(self.df.iloc[:, i]).codes / 10
-                self.df = self.df.astype({self.df.columns[i]: "int64"})
+                # check if the column is a string with exclusively number characters
+                if self.df.iloc[:, i].str.match(r"^\d+$").all():
+                    self.df.iloc[:, i] = pd.to_numeric(self.df.iloc[:, i])
+                else:
+                    self.df.iloc[:, i] = pd.Categorical(self.df.iloc[:, i]).codes
+                self.df = self.df.astype({self.df.columns[i]: "float64"})
         return self

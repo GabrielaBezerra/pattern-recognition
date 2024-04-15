@@ -18,11 +18,10 @@ class Experiment:
         plot_train_test=False,
         plot_decision_boundary=False,
         plot_gaussians=False,
-        plot_delay=1,
+        plot_delay=1.0,
     ):
         self.df = (
             Preprocessing(self.df)
-            # .removing_features_with_missing_values()
             .removing_rows_with_empty_features()
             .transforming_columns_to_numerical()
             .removing_identical_rows()
@@ -70,9 +69,18 @@ class Experiment:
 main = [
     Experiment(
         database_name="Artificial I",
-        df=databases.loadArtificial(),
+        df=databases.loadArtificial(n=1),
         plot=Plot(
             database_name="Artificial I",
+            features=(0, 1),
+            decision_boundary_step=0.05,
+        ),
+    ),
+    Experiment(
+        database_name="Artificial II",
+        df=databases.loadArtificial(n=2),
+        plot=Plot(
+            database_name="Artificial II",
             features=(0, 1),
             decision_boundary_step=0.05,
         ),
@@ -109,6 +117,15 @@ main = [
         df=databases.loadDermatology(),
         plot=Plot(
             database_name="Dermatology (0,1)",
+            features=(0, 1),
+            decision_boundary_step=0.5,
+        ),
+    ),
+    Experiment(
+        database_name="Breast Cancer",
+        df=databases.loadBreastCancer(),
+        plot=Plot(
+            database_name="Breast Cancer (0,1)",
             features=(0, 1),
             decision_boundary_step=0.5,
         ),
@@ -177,11 +194,11 @@ dermatology = [
         df=databases.loadDermatology(),
         plot=Plot(
             database_name="Dermatology",
-            features=(0, 1),
+            features=permutation,
             decision_boundary_step=0.05,
         ),
     )
-    # for permutation in create_permutations(range(34))
+    for permutation in create_permutations(range(34))
 ]
 
 breast_cancer = [

@@ -9,15 +9,15 @@ import numpy as np
 
 log.verbose = True
 
-for exp in experiments.dermatology:
+for exp in experiments.column_2d:
     log.database(exp.database_name)
 
     knn = KNNClassifier(k=int(np.sqrt(len(exp.df))))
     log.model(knn.name, exp.database_name)
     exp.realizations(
         model=knn,
-        split=Holdout(train_percent=0.8),
-        times=3,
+        split=Holdout(train_percent=0.7),
+        times=1,
         metrics=ClassifierMetrics(),
         plot_train_test=False,
         plot_decision_boundary=False,
@@ -28,8 +28,8 @@ for exp in experiments.dermatology:
     log.model(dmc.name, exp.database_name)
     exp.realizations(
         model=dmc,
-        split=Holdout(train_percent=0.8),
-        times=3,
+        split=Holdout(train_percent=0.7),
+        times=1,
         metrics=ClassifierMetrics(),
         plot_train_test=False,
         plot_decision_boundary=False,
@@ -40,11 +40,11 @@ for exp in experiments.dermatology:
     log.model(bayesGausMulti.name, exp.database_name)
     exp.realizations(
         model=bayesGausMulti,
-        split=Holdout(train_percent=0.8),
-        times=20,
+        split=Holdout(train_percent=0.7),
+        times=1,
         metrics=ClassifierMetrics(),
-        plot_train_test=False,
-        plot_decision_boundary=False,
-        plot_gaussians=False,
-        plot_delay=2,
+        plot_train_test=True,
+        plot_decision_boundary=True,
+        plot_gaussians=True,
+        plot_delay=0,
     )

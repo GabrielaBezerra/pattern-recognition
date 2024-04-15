@@ -9,16 +9,19 @@ class ClassifierMetrics:
 
     def confusion_matrix(self, predictions: list[tuple[np.ndarray, str]]):
         m = pd.crosstab(
-            [prediction[1] for prediction in predictions],  # true values
-            [prediction[0][-1] for prediction in predictions],  # predicted values
-            rownames=["True"],
-            colnames=["Predicted"],
+            [prediction[1] for prediction in predictions],  # predicted values
+            [prediction[0][-1] for prediction in predictions],  # true values
+            rownames=["Predicted"],
+            colnames=["True"],
             dropna=False,
         )
         # fill empty classes with zeros to make m symmetric
-        # for label in set(m.index).symmetric_difference(set(m.columns)):
-        #     m[label] = 0
-        #     m.loc[label] = 0
+        for label in set(m.index).symmetric_difference(set(m.columns)):
+            if label not in m.columns:
+                m[label] = 0
+            if label not in m.index:
+                m.loc[label] = 0
+        m = m.sort_index(axis=0).sort_index(axis=1)
         return m
 
     def compute(self, predictions):
@@ -28,7 +31,7 @@ class ClassifierMetrics:
 
         confusion_matrix = self.confusion_matrix(predictions)
         true_positives = confusion_matrix.values.diagonal()
-        false_negatives = (confusion_matrix.sum(axis=1) - true_positives).to_numpy()
+        false_negatives = (confusion_matrix.sum(axis=0) - true_positives).to_numpy()
 
         all_positives = np.sum(true_positives)
         all_negatives = np.sum(false_negatives)
@@ -57,8 +60,7 @@ class ClassifierMetrics:
         for label in hit_miss_realization.keys():
             std_dict_realization[label] = float(np.std(hit_miss_realization[label]))
 
-        # check if hit_rate_realization["All"] is worse than all the hit_rates in the self.all_hit_rate["All"]
-        if len(self.all_hit_rates["All"]) == 1 or hit_rates_realization["All"] < min(
+        if len(self.all_hit_rates["All"]) == 1 or all_hit_rate_realization < min(
             self.all_hit_rates["All"]
         ):
             self.worst_confusion_matrix = confusion_matrix

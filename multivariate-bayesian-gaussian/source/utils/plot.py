@@ -179,17 +179,7 @@ class Plot:
             model.fit(df.to_numpy())
         tuples_list = model.predict(np.c_[xx.ravel(), yy.ravel()], has_labels=False)
         Z_list = [t[1] for t in tuples_list]
-        num_labels = {}
-        categorical_label = False
-        if isinstance(Z_list[0], str):
-            categorical_label = True
-            for i, label in enumerate(df.iloc[:, -1].unique()):
-                num_labels[label] = i
-                num_labels[i] = label
-            Z_num = [num_labels[z] for z in Z_list]
-        else:
-            Z_num = Z_list
-        Z = np.array(Z_num).reshape(xx.shape)
+        Z = np.array(Z_list).reshape(xx.shape)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
         ax.plot_surface(xx, yy, Z, alpha=0.8)

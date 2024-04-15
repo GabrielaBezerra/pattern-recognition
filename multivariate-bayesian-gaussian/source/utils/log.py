@@ -21,11 +21,11 @@ def print_split_details(split, train, test):
         print(f"split_method={split.__class__.__name__}")
         print(f"train={len(train)}")
         X = train.to_numpy()
-        for label in train.iloc[:, -1].unique():
+        for label in sorted(train.iloc[:, -1].unique()):
             print(f"\t{label}={len(X[X[:,-1] == label])}")
         print(f"test={len(test)}")
         Y = test.to_numpy()
-        for label in test.iloc[:, -1].unique():
+        for label in sorted(test.iloc[:, -1].unique()):
             print(f"\t{label}={len(Y[Y[:,-1] == label])}")
 
 
