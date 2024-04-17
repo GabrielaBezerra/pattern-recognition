@@ -7,7 +7,7 @@ from models.bayesian_gaussian_multivariate import BayesianGaussianMultivariate
 from utils import log
 import numpy as np
 
-log.verbose = True
+log.verbose = False
 
 for exp in experiments.main:
     log.database(exp.database_name)
@@ -17,11 +17,11 @@ for exp in experiments.main:
     exp.realizations(
         model=knn,
         split=Holdout(train_percent=0.7),
-        times=1,
+        times=20,
         metrics=ClassifierMetrics(),
         plot_train_test=False,
         plot_decision_boundary=False,
-        plot_delay=1,
+        plot_delay=0.5,
     )
 
     dmc = DMCClassifier()
@@ -29,11 +29,11 @@ for exp in experiments.main:
     exp.realizations(
         model=dmc,
         split=Holdout(train_percent=0.7),
-        times=1,
+        times=20,
         metrics=ClassifierMetrics(),
         plot_train_test=False,
         plot_decision_boundary=False,
-        plot_delay=1,
+        plot_delay=0.5,
     )
 
     bayesGausMulti = BayesianGaussianMultivariate()
@@ -41,10 +41,10 @@ for exp in experiments.main:
     exp.realizations(
         model=bayesGausMulti,
         split=Holdout(train_percent=0.7),
-        times=1,
+        times=20,
         metrics=ClassifierMetrics(),
-        plot_train_test=True,
-        plot_decision_boundary=True,
-        plot_gaussians=True,
-        plot_delay=0,
+        plot_train_test=False,
+        plot_decision_boundary=False,
+        plot_gaussians=False,
+        plot_delay=0.5,
     )

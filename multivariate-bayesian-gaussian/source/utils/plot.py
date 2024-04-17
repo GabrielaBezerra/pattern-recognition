@@ -8,12 +8,13 @@ class Plot:
         self,
         database_name: str,
         features: tuple[int, int],
-        decision_boundary_step=0.1,
+        decision_boundary_step=0.5,
     ):
         self.database_name = database_name
         self.feature_a = features[0]
         self.feature_b = features[1]
         self.decision_boundary_step = decision_boundary_step
+        self.classes = {}
 
     def show_database_after_split(self, model, r, train, test, delay=0):
         # Copy properties to variables
@@ -46,8 +47,11 @@ class Plot:
                 train[train.iloc[:, -1] == label].iloc[:, feature_a],
                 train[train.iloc[:, -1] == label].iloc[:, feature_b],
                 c=[f"C{i}"],
-                label=f"Train {label}"
-                + (f" ({categorical_dict[label]})" if categorical_label else ""),
+                label=(
+                    f"Train {self.classes[i]} ({label})"
+                    if "Dermatology" not in self.database_name
+                    else f"Train {label}"
+                ),
             )
         ax.scatter(
             test.iloc[:, feature_a],
@@ -74,7 +78,7 @@ class Plot:
             ncol=2,
         )
         plt.tight_layout()
-        plt.tight_layout()
+
         if delay > 0:
             plt.show(block=False)
             plt.pause(delay)
@@ -104,13 +108,12 @@ class Plot:
             model.fit(df.to_numpy())
         tuples_list = model.predict(np.c_[xx.ravel(), yy.ravel()], has_labels=False)
         Z_list = [t[1] for t in tuples_list]
-        num_labels = {}
+        num_labels = self.classes
         categorical_label = False
         if isinstance(Z_list[0], str):
             categorical_label = True
-            for i, label in enumerate(df.iloc[:, -1].unique()):
-                num_labels[label] = i
-                num_labels[i] = label
+            for i, label in enumerate(self.classes):
+                num_labels[self.classes[i]] = i
             Z_num = [num_labels[z] for z in Z_list]
         else:
             Z_num = Z_list
@@ -118,7 +121,7 @@ class Plot:
         plt.contourf(xx, yy, Z, alpha=0.8)
 
         if isinstance(df.iloc[0, -1], str):
-            colors = [num_labels[label] for label in df.iloc[:, -1]]
+            colors = [num_labels[label] for label in self.classes]
         else:
             colors = df.iloc[:, -1]
         scatter = plt.scatter(
@@ -133,13 +136,7 @@ class Plot:
         plt.ylim(yy.min(), yy.max())
         plt.title(f"Decision Boundary - {model.name} - {self.database_name} - R{r}")
         # show all legends in the plot from num_labels
-        if categorical_label:
-            labels = [
-                f"{num_labels[int(''.join(i for i in value if i.isdigit()))]} ({value})"
-                for value in scatter.legend_elements()[1]
-            ]
-        else:
-            labels = scatter.legend_elements()[1]
+        labels = [self.classes[i] for i in num_labels]
         plt.legend(
             handles=scatter.legend_elements()[0],
             labels=labels,
@@ -185,11 +182,12 @@ class Plot:
         ax.plot_surface(xx, yy, Z, alpha=0.8)
         ax.set_xlabel(df.columns[feat_a])
         ax.set_ylabel(df.columns[feat_b])
-        ax.set_zlabel("Class")
+        ax.set_zlabel(df.columns[-1])
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
-        ax.set_title(f"Gaussian 3D - {model.name} - {self.database_name} - R{r}")
-        # show all legends in the plot from num_labels
+        ax.set_title(
+            f"Decision Boundary 3D - {model.name} - {self.database_name} - R{r}"
+        )
         if delay > 0:
             plt.show(block=False)
             plt.pause(delay)
@@ -198,34 +196,64 @@ class Plot:
             plt.show(block=True)
 
     def show_gaussian_curves_3d(self, model, r, df, delay=0):
-        ax = plt.axes(projection="3d")
-        ax.set_xlabel(df.columns[self.feature_a])
-        ax.set_ylabel(df.columns[self.feature_b])
-        ax.set_zlabel("Probability Density")
-        ax.set_title(f"Gaussian Curves - {model.name} - {self.database_name} - R{r}")
+        feat_a = self.feature_a
+        feat_b = self.feature_b
+        step = self.decision_boundary_step
+        bottom_value = 0.00005
 
-        for i, c in enumerate(model.classes):
-            data = df[df.iloc[:, -1] == c].iloc[:, :-1]
-            mean = model.class_means[i]
-            cov = model.class_covs[i]
-            x = np.linspace(
-                data.iloc[:, self.feature_a].min(),
-                data.iloc[:, self.feature_a].max(),
-                100,
-            )
-            y = np.linspace(
-                data.iloc[:, self.feature_b].min(),
-                data.iloc[:, self.feature_b].max(),
-                100,
-            )
+        x_min, x_max = (
+            df.iloc[:, feat_a].min() - 0.25,
+            df.iloc[:, feat_a].max() + 0.25,
+        )
+        y_min, y_max = (
+            df.iloc[:, feat_b].min() - 0.25,
+            df.iloc[:, feat_b].max() + 0.25,
+        )
+        xx, yy = np.meshgrid(
+            np.arange(x_min, x_max, step), np.arange(y_min, y_max, step)
+        )
+        if df.shape[1] > 3:
+            model.fit(df.iloc[:, [feat_a, feat_b, -1]].to_numpy())
+        else:
+            model.fit(df.to_numpy())
+        # plot all classes density probability functions at the same time
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+        for i, _ in enumerate(model.classes):
+            x = np.linspace(x_min, x_max, 100)
+            y = np.linspace(y_min, y_max, 100)
             X, Y = np.meshgrid(x, y)
             Z = np.zeros(X.shape)
             for j in range(X.shape[0]):
                 for k in range(X.shape[1]):
                     Z[j, k] = model._multivariate_gaussian(
-                        np.array([X[j, k], Y[j, k]]), mean, cov
+                        np.array([X[j, k], Y[j, k]]),
+                        model.class_means[i],
+                        model.class_covs[i],
                     )
-            ax.plot_surface(X, Y, Z, alpha=0.5)
+            Z[Z <= bottom_value] = np.nan
+            ax.plot_surface(X, Y, Z, alpha=0.8)
+        ax.set_xlabel(df.columns[feat_a])
+        ax.set_ylabel(df.columns[feat_b])
+        ax.set_zlabel("Density Probability")
+        ax.set_xlim(xx.min(), xx.max())
+        ax.set_ylim(yy.min(), yy.max())
+        ax.set_title(f"Gaussian 3D - {model.name} - {self.database_name} - R{r}")
+        labels = [
+            f"{self.classes[int(i)]}"
+            if "Dermatology" not in self.database_name
+            else f"{c}"
+            for i, c in enumerate(model.classes)
+        ]
+        plt.legend(
+            labels,
+            title="Classes",
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+            shadow=True,
+            ncol=2,
+        )
+        plt.tight_layout()
         if delay > 0:
             plt.show(block=False)
             plt.pause(delay)

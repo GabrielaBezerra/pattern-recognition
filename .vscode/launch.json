@@ -11,7 +11,7 @@
             "program": "multivariate-bayesian-gaussian/source/main.py",
             "console": "integratedTerminal",
             "preLaunchTask": "Clear terminal",
-            "justMyCode": true
+            "justMyCode": false
         }
     ]
 }

@@ -60,14 +60,14 @@ class ClassifierMetrics:
         for label in hit_miss_realization.keys():
             std_dict_realization[label] = float(np.std(hit_miss_realization[label]))
 
-        if len(self.all_hit_rates["All"]) == 1 or all_hit_rate_realization < min(
-            self.all_hit_rates["All"]
+        if len(self.all_hit_rates["All"]) >= 1 and all_hit_rate_realization <= min(
+            [float(rate) for rate in self.all_hit_rates["All"]]
         ):
             self.worst_confusion_matrix = confusion_matrix
 
         return (confusion_matrix, hit_rates_realization, std_dict_realization)
 
-    def compute_final_metrics(self):
+    def compute_final_metrics(self, classes):
         final_accuracies = {}
         final_std = {}
 
@@ -81,7 +81,11 @@ class ClassifierMetrics:
             std = np.std(hit_rates_list)
             final_std[label] = std
 
+        print(f"\nClasses: {classes}")
+
         print("\nWorst Confusion Matrix:")
+        # print whole worst_confusion_matrix without truncating
+        np.set_printoptions(threshold=np.inf)
         print(self.worst_confusion_matrix)
 
         return {"Accuracy": final_accuracies, "Standard Deviation": final_std}

@@ -7,6 +7,7 @@ class Experiment:
     def __init__(self, database_name, df, plot) -> None:
         self.database_name = database_name
         self.df = df
+        self.classes = {}
         self.plot = plot
 
     def realizations(
@@ -20,13 +21,16 @@ class Experiment:
         plot_gaussians=False,
         plot_delay=1.0,
     ):
+        preprocessing = Preprocessing(self.df)
         self.df = (
-            Preprocessing(self.df)
-            .removing_rows_with_empty_features()
+            preprocessing.removing_rows_with_empty_features()
             .transforming_columns_to_numerical()
             .removing_identical_rows()
             .preprocessed_dataframe
         )
+        if self.classes == {}:
+            self.classes = preprocessing.classes
+        self.plot.classes = self.classes
 
         for r in range(1, times + 1):
             train, test = split.split(self.df)
@@ -67,7 +71,7 @@ class Experiment:
                     delay=plot_delay,
                 )
 
-        final_metrics = metrics.compute_final_metrics()
+        final_metrics = metrics.compute_final_metrics(self.classes)
 
         log.experiment_results(final_metrics)
 
@@ -77,7 +81,7 @@ main = [
         database_name="Artificial I",
         df=databases.loadArtificial(n=1),
         plot=Plot(
-            database_name="Artificial I",
+            database_name="Artificial I (0,1)",
             features=(0, 1),
             decision_boundary_step=0.05,
         ),
@@ -86,7 +90,7 @@ main = [
         database_name="Artificial II",
         df=databases.loadArtificial(n=2),
         plot=Plot(
-            database_name="Artificial II",
+            database_name="Artificial II (0,1)",
             features=(0, 1),
             decision_boundary_step=0.05,
         ),
@@ -97,15 +101,15 @@ main = [
         plot=Plot(
             database_name="Iris (2,3)",
             features=(2, 3),
-            decision_boundary_step=0.1,
+            decision_boundary_step=0.05,
         ),
     ),
     Experiment(
         database_name="Column 2D",
         df=databases.loadColumn(binary=True),
         plot=Plot(
-            database_name="Column 2D (0,1)",
-            features=(4, 5),
+            database_name="Column 2D (1,5)",
+            features=(1, 5),
             decision_boundary_step=0.5,
         ),
     ),
@@ -113,8 +117,8 @@ main = [
         database_name="Column 3D",
         df=databases.loadColumn(binary=False),
         plot=Plot(
-            database_name="Column 3D (0,1)",
-            features=(4, 5),
+            database_name="Column 3D (3,4)",
+            features=(3, 4),
             decision_boundary_step=0.5,
         ),
     ),
@@ -122,18 +126,18 @@ main = [
         database_name="Dermatology",
         df=databases.loadDermatology(),
         plot=Plot(
-            database_name="Dermatology (0,1)",
-            features=(0, 1),
-            decision_boundary_step=0.5,
+            database_name="Dermatology (1,2)",
+            features=(1, 2),
+            decision_boundary_step=0.05,
         ),
     ),
     Experiment(
         database_name="Breast Cancer",
         df=databases.loadBreastCancer(),
         plot=Plot(
-            database_name="Breast Cancer (0,1)",
-            features=(0, 1),
-            decision_boundary_step=0.5,
+            database_name="Breast Cancer (1,9)",
+            features=(1, 9),
+            decision_boundary_step=0.05,
         ),
     ),
 ]
@@ -143,12 +147,24 @@ def create_permutations(arr):
     return [(arr[i], arr[j]) for i in range(len(arr)) for j in range(i + 1, len(arr))]
 
 
-artificial = [
+artificial_1 = [
     Experiment(
         database_name="Artificial I",
-        df=databases.loadArtificial(),
+        df=databases.loadArtificial(n=1),
         plot=Plot(
             database_name="Artificial I",
+            features=(0, 1),
+            decision_boundary_step=0.05,
+        ),
+    ),
+]
+
+artificial_2 = [
+    Experiment(
+        database_name="Artificial II",
+        df=databases.loadArtificial(n=2),
+        plot=Plot(
+            database_name="Artificial II",
             features=(0, 1),
             decision_boundary_step=0.05,
         ),
@@ -199,7 +215,7 @@ dermatology = [
         database_name="Dermatology",
         df=databases.loadDermatology(),
         plot=Plot(
-            database_name="Dermatology",
+            database_name=f"Dermatology {permutation}",
             features=permutation,
             decision_boundary_step=0.05,
         ),
@@ -212,13 +228,22 @@ breast_cancer = [
         database_name="Breast Cancer",
         df=databases.loadBreastCancer(),
         plot=Plot(
-            database_name="Breast Cancer",
-            features=(0, 1),
+            database_name=f"Breast Cancer {permutation}",
+            features=permutation,
             decision_boundary_step=0.05,
         ),
     )
+    for permutation in create_permutations(range(10))
 ]
 
-aditional = artificial + iris + column_2d + column_3d
+aditional = (
+    artificial_1
+    + artificial_2
+    + iris
+    + column_2d
+    + column_3d
+    + dermatology
+    + breast_cancer
+)
 
 all = main + aditional
