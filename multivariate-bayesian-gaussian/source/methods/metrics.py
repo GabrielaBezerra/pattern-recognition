@@ -85,7 +85,7 @@ class ClassifierMetrics:
 
         print("\nWorst Confusion Matrix:")
         # print whole worst_confusion_matrix without truncating
-        np.set_printoptions(threshold=np.inf)
+        pd.set_option("display.max_columns", None)
         print(self.worst_confusion_matrix)
 
         return {"Accuracy": final_accuracies, "Standard Deviation": final_std}

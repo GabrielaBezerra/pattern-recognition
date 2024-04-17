@@ -179,10 +179,10 @@ class Plot:
         Z = np.array(Z_list).reshape(xx.shape)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
-        ax.plot_surface(xx, yy, Z, alpha=0.8)
+        ax.plot_surface(xx, yy, Z, alpha=0.8)  # type: ignore
         ax.set_xlabel(df.columns[feat_a])
         ax.set_ylabel(df.columns[feat_b])
-        ax.set_zlabel(df.columns[-1])
+        ax.set_zlabel(df.columns[-1])  # type: ignore
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
         ax.set_title(
@@ -232,10 +232,10 @@ class Plot:
                         model.class_covs[i],
                     )
             Z[Z <= bottom_value] = np.nan
-            ax.plot_surface(X, Y, Z, alpha=0.8)
+            ax.plot_surface(X, Y, Z, alpha=0.8)  # type: ignore
         ax.set_xlabel(df.columns[feat_a])
         ax.set_ylabel(df.columns[feat_b])
-        ax.set_zlabel("Density Probability")
+        ax.set_zlabel("Density Probability")  # type: ignore
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
         ax.set_title(f"Gaussian 3D - {model.name} - {self.database_name} - R{r}")
