@@ -4,6 +4,13 @@ import warnings
 
 
 class Plot:
+    TRAIN_TEST = "train_test"
+    DECISION_BOUNDARY = "decision_boundary"
+    DECISION_BOUNDARY_3D = "decision_boundary_3d"
+    GAUSSIAN_CURVES_3D = "gaussian_curves_3d"
+
+
+class PlotFactory:
     def __init__(
         self,
         database_name: str,
@@ -24,15 +31,12 @@ class Plot:
         # Check if the features are categorical and replace them with numbers
         warnings.filterwarnings("ignore")
         categorical_dict = {}
-        categorical_label = False
         if isinstance(train.iloc[0, feature_a], str):
-            categorical_label = feature_a == -1
             for n, label in enumerate(train.iloc[:, feature_a].unique()):
                 train.iloc[:, feature_a] = train.iloc[:, feature_a].replace(label, n)
                 test.iloc[:, feature_a] = test.iloc[:, feature_a].replace(label, n)
                 categorical_dict[n] = label
         if isinstance(train.iloc[0, feature_b], str):
-            categorical_label = feature_b == -1
             for n, label in enumerate(train.iloc[:, feature_b].unique()):
                 train.iloc[:, feature_b] = train.iloc[:, feature_b].replace(label, n)
                 test.iloc[:, feature_b] = test.iloc[:, feature_b].replace(label, n)
@@ -109,9 +113,7 @@ class Plot:
         tuples_list = model.predict(np.c_[xx.ravel(), yy.ravel()], has_labels=False)
         Z_list = [t[1] for t in tuples_list]
         num_labels = self.classes
-        categorical_label = False
         if isinstance(Z_list[0], str):
-            categorical_label = True
             for i, label in enumerate(self.classes):
                 num_labels[self.classes[i]] = i
             Z_num = [num_labels[z] for z in Z_list]

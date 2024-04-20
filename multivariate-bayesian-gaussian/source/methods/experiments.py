@@ -1,6 +1,7 @@
 from utils import databases, log
-from utils.plot import Plot
+from utils.plot import PlotFactory, Plot
 from methods.preprocessing import Preprocessing
+from models.bayesian_gaussian_multivariate import BayesianGaussianMultivariate
 
 
 class Experiment:
@@ -16,9 +17,7 @@ class Experiment:
         split,
         times,
         metrics,
-        plot_train_test=False,
-        plot_decision_boundary=False,
-        plot_gaussians=False,
+        plots,
         plot_delay=1.0,
     ):
         preprocessing = Preprocessing(self.df)
@@ -35,7 +34,7 @@ class Experiment:
         for r in range(1, times + 1):
             train, test = split.split(self.df)
 
-            if plot_train_test:
+            if Plot.TRAIN_TEST in plots:
                 self.plot.show_database_after_split(
                     model,
                     r,
@@ -49,13 +48,15 @@ class Experiment:
             realization_metrics = metrics.compute(predictions)
             log.realization_details(r, model, split, train, test, realization_metrics)
 
-            if plot_decision_boundary:
+            if Plot.DECISION_BOUNDARY in plots:
                 self.plot.show_decision_boundary(
                     model,
                     r,
                     train,
                     delay=plot_delay,
                 )
+
+            if Plot.DECISION_BOUNDARY_3D in plots:
                 self.plot.show_decision_boundary_3d(
                     model,
                     r,
@@ -63,7 +64,10 @@ class Experiment:
                     delay=plot_delay,
                 )
 
-            if plot_gaussians:
+            if (
+                type(model) is BayesianGaussianMultivariate
+                and Plot.GAUSSIAN_CURVES_3D in plots
+            ):
                 self.plot.show_gaussian_curves_3d(
                     model,
                     r,
@@ -80,7 +84,7 @@ main = [
     Experiment(
         database_name="Artificial I",
         df=databases.loadArtificial(n=1),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Artificial I (0,1)",
             features=(0, 1),
             decision_boundary_step=0.05,
@@ -89,7 +93,7 @@ main = [
     Experiment(
         database_name="Artificial II",
         df=databases.loadArtificial(n=2),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Artificial II (0,1)",
             features=(0, 1),
             decision_boundary_step=0.05,
@@ -98,7 +102,7 @@ main = [
     Experiment(
         database_name="Iris",
         df=databases.loadIris(),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Iris (2,3)",
             features=(2, 3),
             decision_boundary_step=0.05,
@@ -107,7 +111,7 @@ main = [
     Experiment(
         database_name="Column 2D",
         df=databases.loadColumn(binary=True),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Column 2D (1,5)",
             features=(1, 5),
             decision_boundary_step=0.5,
@@ -116,7 +120,7 @@ main = [
     Experiment(
         database_name="Column 3D",
         df=databases.loadColumn(binary=False),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Column 3D (3,4)",
             features=(3, 4),
             decision_boundary_step=0.5,
@@ -125,7 +129,7 @@ main = [
     Experiment(
         database_name="Dermatology",
         df=databases.loadDermatology(),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Dermatology (1,2)",
             features=(1, 2),
             decision_boundary_step=0.05,
@@ -134,7 +138,7 @@ main = [
     Experiment(
         database_name="Breast Cancer",
         df=databases.loadBreastCancer(),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Breast Cancer (1,9)",
             features=(1, 9),
             decision_boundary_step=0.05,
@@ -151,7 +155,7 @@ artificial_1 = [
     Experiment(
         database_name="Artificial I",
         df=databases.loadArtificial(n=1),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Artificial I",
             features=(0, 1),
             decision_boundary_step=0.05,
@@ -163,7 +167,7 @@ artificial_2 = [
     Experiment(
         database_name="Artificial II",
         df=databases.loadArtificial(n=2),
-        plot=Plot(
+        plot=PlotFactory(
             database_name="Artificial II",
             features=(0, 1),
             decision_boundary_step=0.05,
@@ -175,7 +179,7 @@ iris = [
     Experiment(
         database_name="Iris",
         df=databases.loadIris(),
-        plot=Plot(
+        plot=PlotFactory(
             database_name=f"Iris {permutation}",
             features=permutation,
             decision_boundary_step=0.1,
@@ -188,7 +192,7 @@ column_2d = [
     Experiment(
         database_name="Column 2D",
         df=databases.loadColumn(binary=True),
-        plot=Plot(
+        plot=PlotFactory(
             database_name=f"Column 2D {permutation}",
             features=permutation,
             decision_boundary_step=0.5,
@@ -201,7 +205,7 @@ column_3d = [
     Experiment(
         database_name="Column 3D",
         df=databases.loadColumn(binary=False),
-        plot=Plot(
+        plot=PlotFactory(
             database_name=f"Column 3D {permutation}",
             features=permutation,
             decision_boundary_step=0.5,
@@ -214,7 +218,7 @@ dermatology = [
     Experiment(
         database_name="Dermatology",
         df=databases.loadDermatology(),
-        plot=Plot(
+        plot=PlotFactory(
             database_name=f"Dermatology {permutation}",
             features=permutation,
             decision_boundary_step=0.05,
@@ -227,7 +231,7 @@ breast_cancer = [
     Experiment(
         database_name="Breast Cancer",
         df=databases.loadBreastCancer(),
-        plot=Plot(
+        plot=PlotFactory(
             database_name=f"Breast Cancer {permutation}",
             features=permutation,
             decision_boundary_step=0.05,
