@@ -1,6 +1,9 @@
+import math
+import random
+import pandas as pd
 import numpy as np
 
-# Explicação: https://www.geeksforgeeks.org/ml-naive-bayes-scratch-implementation-using-python/
+# Explicação: https://medium.com/@rangavamsi5/na%C3%AFve-bayes-algorithm-implementation-from-scratch-in-python-7b2cc39268b9
 
 # 1 Modelo
 # Calcular verossimilhança
@@ -62,7 +65,8 @@ class NaiveBayesClassifier:
                 var = self.class_vars[i]
 
                 # calculating the likelihood of the data point under the class's Gaussian distribution
-                likelihood = self._univariate_gaussian(data, mean, var)
+                gaussians = self._univariate_gaussian(data, mean, var)
+                likelihood = np.prod(gaussians)
 
                 # calculating the posterior probability
                 posteriors[i] = prior * likelihood
@@ -74,5 +78,8 @@ class NaiveBayesClassifier:
         return predictions
 
     def _univariate_gaussian(self, x, mean, var):
+        # apply regularization to the covariance matrix to avoid singular matrix
+        var += 1e-6
+
         # calculating the exponential term of the Gaussian distribution
-        return np.exp(-((x - mean) ** 2) / (2 * var)) / np.sqrt(2 * np.pi * var)
+        return (1 / np.sqrt(2 * np.pi * var)) * np.exp(-((x - mean) ** 2) / (2 * var))

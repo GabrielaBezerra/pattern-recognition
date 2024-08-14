@@ -8,7 +8,7 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "multivariate-bayesian-gaussian/source/main.py",
+            "program": "naive-bayes/source/main.py",
             "console": "integratedTerminal",
             "preLaunchTask": "Clear terminal",
             "justMyCode": false
