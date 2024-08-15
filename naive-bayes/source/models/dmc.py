@@ -33,3 +33,8 @@ class DMCClassifier:
             nearest_label = list(self.centroids.keys())[np.argmin(distances)]
             predictions.append((newData, nearest_label))
         return predictions
+
+    def __copy__(self):
+        classifier = DMCClassifier()
+        classifier.centroids = self.centroids.copy()
+        return classifier

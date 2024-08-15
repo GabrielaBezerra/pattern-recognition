@@ -32,10 +32,10 @@ for exp in experiments.main:
             times=20,
             metrics=ClassifierMetrics(),
             plots=[
-                # Plot.TRAIN_TEST,
-                # Plot.DECISION_BOUNDARY,
-                # Plot.DECISION_BOUNDARY_3D,
-                # Plot.GAUSSIAN_CURVES_3D,
+                Plot.TRAIN_TEST,
+                Plot.DECISION_BOUNDARY,
+                Plot.DECISION_BOUNDARY_3D,
+                Plot.GAUSSIAN_CURVES_3D,
             ],
             plot_delay=0,
         )

@@ -1,7 +1,6 @@
 from utils import databases, log
-from utils.plot import PlotFactory, Plot
+from utils.plot import PlotFactory
 from methods.preprocessing import Preprocessing
-from models.bayesian_gaussian_multivariate import BayesianGaussianMultivariate
 
 
 class Experiment:
@@ -34,46 +33,12 @@ class Experiment:
         for r in range(1, times + 1):
             train, test = split.split(self.df)
 
-            if Plot.TRAIN_TEST in plots:
-                self.plot.show_database_after_split(
-                    model,
-                    r,
-                    train,
-                    test,
-                    delay=plot_delay,
-                )
-
             model.fit(train.to_numpy())
             predictions = model.predict(test.to_numpy())
             realization_metrics = metrics.compute(predictions)
             log.realization_details(r, model, split, train, test, realization_metrics)
 
-            if Plot.DECISION_BOUNDARY in plots:
-                self.plot.show_decision_boundary(
-                    model,
-                    r,
-                    train,
-                    delay=plot_delay,
-                )
-
-            if Plot.DECISION_BOUNDARY_3D in plots:
-                self.plot.show_decision_boundary_3d(
-                    model,
-                    r,
-                    train,
-                    delay=plot_delay,
-                )
-
-            if (
-                type(model) is BayesianGaussianMultivariate
-                and Plot.GAUSSIAN_CURVES_3D in plots
-            ):
-                self.plot.show_gaussian_curves_3d(
-                    model,
-                    r,
-                    train,
-                    delay=plot_delay,
-                )
+            self.plot.show(plots, model, r, train, test, plot_delay)
 
         final_metrics = metrics.compute_final_metrics(self.classes)
 
@@ -240,7 +205,7 @@ breast_cancer = [
     for permutation in create_permutations(range(10))
 ]
 
-aditional = (
+additional = (
     artificial_1
     + artificial_2
     + iris
@@ -250,4 +215,4 @@ aditional = (
     + breast_cancer
 )
 
-all = main + aditional
+all = main + additional

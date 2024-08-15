@@ -28,3 +28,8 @@ class KNNClassifier:
             prediction = nearest_labels_count.most_common(1)[0][0]
             predictions.append((newData, prediction))
         return predictions
+
+    def __copy__(self):
+        classifier = KNNClassifier(self.k)
+        classifier.memory = self.memory.copy()
+        return classifier

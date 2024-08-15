@@ -1,6 +1,9 @@
+from copy import copy
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
+from models.bayesian_gaussian_multivariate import BayesianGaussianMultivariate
+from models.naive_bayes import NaiveBayesClassifier
 
 
 class Plot:
@@ -23,10 +26,32 @@ class PlotFactory:
         self.decision_boundary_step = decision_boundary_step
         self.classes = {}
 
-    def show_database_after_split(self, model, r, train, test, delay=0):
+    def show(self, plots, model, r, train, test, delay=0):
+        self.plots = plots
+        self.model = model
+        self.r = r
+        self.train = train
+        self.test = test
+        self.delay = delay
+
+        if Plot.TRAIN_TEST in plots:
+            self.show_database_after_split()
+
+        if Plot.DECISION_BOUNDARY in plots:
+            self.show_decision_boundary()
+
+        if Plot.DECISION_BOUNDARY_3D in plots:
+            self.show_decision_boundary_3d()
+
+        if Plot.GAUSSIAN_CURVES_3D in plots:
+            self.show_gaussian_curves_3d()
+
+    def show_database_after_split(self):
         # Copy properties to variables
         feature_a = self.feature_a
         feature_b = self.feature_b
+        train = type(self.train)(self.train)
+        test = type(self.test)(self.test)
 
         # Check if the features are categorical and replace them with numbers
         warnings.filterwarnings("ignore")
@@ -72,7 +97,7 @@ class PlotFactory:
         y_max = train.iloc[:, feature_b].max()
         ax.set(xlim=(x_min - 0.25, x_max + 0.25), ylim=(y_min - 0.25, y_max + 0.25))
         ax.set(xlabel=feat_name_a, ylabel=feat_name_b)
-        plt.title(f"Split - {model.name} - {self.database_name} - R{r}")
+        plt.title(f"Split - {self.model.name} - {self.database_name} - R{self.r}")
         plt.grid(True)
         plt.legend(
             title=train.columns[-1],
@@ -81,19 +106,14 @@ class PlotFactory:
             shadow=True,
             ncol=2,
         )
-        plt.tight_layout()
+        self.show_tight_with_delay(plt)
 
-        if delay > 0:
-            plt.show(block=False)
-            plt.pause(delay)
-            plt.close()
-        else:
-            plt.show(block=True)
-
-    def show_decision_boundary(self, model, r, df, delay=0):
+    def show_decision_boundary(self):
         feat_a = self.feature_a
         feat_b = self.feature_b
         step = self.decision_boundary_step
+        model = copy(self.model)
+        df = self.train
 
         x_min, x_max = (
             df.iloc[:, feat_a].min() - 0.25,
@@ -136,7 +156,9 @@ class PlotFactory:
         plt.ylabel(df.columns[feat_b])
         plt.xlim(xx.min(), xx.max())
         plt.ylim(yy.min(), yy.max())
-        plt.title(f"Decision Boundary - {model.name} - {self.database_name} - R{r}")
+        plt.title(
+            f"Decision Boundary - {self.model.name} - {self.database_name} - R{self.r}"
+        )
         # show all legends in the plot from num_labels
         labels = [self.classes[i] for i in num_labels]
         plt.legend(
@@ -148,18 +170,14 @@ class PlotFactory:
             shadow=True,
             ncol=2,
         )
-        plt.tight_layout()
-        if delay > 0:
-            plt.show(block=False)
-            plt.pause(delay)
-            plt.close()
-        else:
-            plt.show(block=True)
+        self.show_tight_with_delay(plt)
 
-    def show_decision_boundary_3d(self, model, r, df, delay=0):
+    def show_decision_boundary_3d(self):
         feat_a = self.feature_a
         feat_b = self.feature_b
         step = self.decision_boundary_step
+        model = copy(self.model)
+        df = self.train
 
         x_min, x_max = (
             df.iloc[:, feat_a].min() - 0.25,
@@ -188,20 +206,26 @@ class PlotFactory:
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
         ax.set_title(
-            f"Decision Boundary 3D - {model.name} - {self.database_name} - R{r}"
+            f"Decision Boundary 3D - {self.model.name} - {self.database_name} - R{self.r}"
         )
-        if delay > 0:
-            plt.show(block=False)
-            plt.pause(delay)
-            plt.close()
-        else:
-            plt.show(block=True)
+        self.show_tight_with_delay(plt)
 
-    def show_gaussian_curves_3d(self, model, r, df, delay=0):
+    def show_gaussian_curves_3d(self):
+        if (
+            type(self.model) is not BayesianGaussianMultivariate
+            and type(self.model) is not NaiveBayesClassifier
+        ):
+            warnings.warn(
+                "This plot is only available for BayesianGaussianMultivariate and NaiveBayesClassifier models."
+            )
+            return
+
         feat_a = self.feature_a
         feat_b = self.feature_b
         step = self.decision_boundary_step
         bottom_value = 0.00005
+        model = copy(self.model)
+        df = self.train
 
         x_min, x_max = (
             df.iloc[:, feat_a].min() - 0.25,
@@ -228,11 +252,21 @@ class PlotFactory:
             Z = np.zeros(X.shape)
             for j in range(X.shape[0]):
                 for k in range(X.shape[1]):
-                    Z[j, k] = model._multivariate_gaussian(
-                        np.array([X[j, k], Y[j, k]]),
-                        model.class_means[i],
-                        model.class_covs[i],
-                    )
+                    if type(model) is BayesianGaussianMultivariate:
+                        Z[j, k] = model._multivariate_gaussian(
+                            np.array([X[j, k], Y[j, k]]),
+                            model.class_means[i],
+                            model.class_covs[i],
+                        )
+                    elif type(model) is NaiveBayesClassifier:
+                        Z[j, k] = model._univariate_gaussian(
+                            np.array([X[j, k], Y[j, k]]),
+                            model.class_means[i],
+                            model.class_vars[i],
+                        )
+                    else:
+                        print("none")
+
             Z[Z <= bottom_value] = np.nan
             ax.plot_surface(X, Y, Z, alpha=0.8)  # type: ignore
         ax.set_xlabel(df.columns[feat_a])
@@ -240,7 +274,7 @@ class PlotFactory:
         ax.set_zlabel("Density Probability")  # type: ignore
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
-        ax.set_title(f"Gaussian 3D - {model.name} - {self.database_name} - R{r}")
+        ax.set_title(f"Gaussian 3D - {model.name} - {self.database_name} - R{self.r}")
         labels = [
             f"{self.classes[int(i)]}"
             if "Dermatology" not in self.database_name
@@ -255,10 +289,13 @@ class PlotFactory:
             shadow=True,
             ncol=2,
         )
+        self.show_tight_with_delay(plt)
+
+    def show_tight_with_delay(self, plt):
         plt.tight_layout()
-        if delay > 0:
+        if self.delay > 0:
             plt.show(block=False)
-            plt.pause(delay)
+            plt.pause(self.delay)
             plt.close()
         else:
             plt.show(block=True)

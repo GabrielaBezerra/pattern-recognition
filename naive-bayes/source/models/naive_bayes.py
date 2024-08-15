@@ -1,6 +1,3 @@
-import math
-import random
-import pandas as pd
 import numpy as np
 
 # Explicação: https://medium.com/@rangavamsi5/na%C3%AFve-bayes-algorithm-implementation-from-scratch-in-python-7b2cc39268b9
@@ -65,8 +62,7 @@ class NaiveBayesClassifier:
                 var = self.class_vars[i]
 
                 # calculating the likelihood of the data point under the class's Gaussian distribution
-                gaussians = self._univariate_gaussian(data, mean, var)
-                likelihood = np.prod(gaussians)
+                likelihood = self._univariate_gaussian(data, mean, var)
 
                 # calculating the posterior probability
                 posteriors[i] = prior * likelihood
@@ -81,5 +77,18 @@ class NaiveBayesClassifier:
         # apply regularization to the covariance matrix to avoid singular matrix
         var += 1e-6
 
-        # calculating the exponential term of the Gaussian distribution
-        return (1 / np.sqrt(2 * np.pi * var)) * np.exp(-((x - mean) ** 2) / (2 * var))
+        # calculating gaussian distributions for each feature
+        gaussians = (1 / np.sqrt(2 * np.pi * var)) * np.exp(
+            -((x - mean) ** 2) / (2 * var)
+        )
+
+        # returning likelihood
+        return np.prod(gaussians)
+
+    def __copy__(self):
+        classifier = NaiveBayesClassifier()
+        classifier.classes = self.classes.copy()
+        classifier.class_priors = self.class_priors.copy()
+        classifier.class_means = self.class_means.copy()
+        classifier.class_vars = self.class_vars.copy()
+        return classifier

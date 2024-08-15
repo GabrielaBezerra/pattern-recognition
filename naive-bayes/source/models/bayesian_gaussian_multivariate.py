@@ -8,7 +8,7 @@ class BayesianGaussianMultivariate:
     class_covs: np.ndarray
 
     def __init__(self) -> None:
-        self.name = "BayesianGaussianMulticlass"
+        self.name = "BayesianGaussianMultivariate"
 
     def fit(self, train):
         self.classes = np.unique(train[:, -1])
@@ -67,3 +67,11 @@ class BayesianGaussianMultivariate:
             np.linalg.det(cov) * (2 * np.pi) ** (len(x) / 2)
         )
         return likelihood
+
+    def __copy__(self):
+        classifier = BayesianGaussianMultivariate()
+        classifier.classes = self.classes.copy()
+        classifier.class_priors = self.class_priors.copy()
+        classifier.class_means = self.class_means.copy()
+        classifier.class_covs = self.class_covs.copy()
+        return classifier
