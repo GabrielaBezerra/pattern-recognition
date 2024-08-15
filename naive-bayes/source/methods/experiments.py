@@ -12,7 +12,7 @@ class Experiment:
 
     def realizations(
         self,
-        model,
+        models,
         split,
         times,
         metrics,
@@ -30,16 +30,18 @@ class Experiment:
             self.classes = preprocessing.classes
         self.plot.classes = self.classes
 
-        for r in range(1, times + 1):
+        for realiz in range(1, times + 1):
             train, test = split.split(self.df)
 
-            model.fit(train.to_numpy())
-            predictions = model.predict(test.to_numpy())
-            realization_metrics = metrics.compute(predictions)
-            log.realization_details(r, model, split, train, test, realization_metrics)
+            for model in models:
+                log.model(model.name, self.database_name)
+                model.fit(train.to_numpy())
+                predictions = model.predict(test.to_numpy())
+                realiz_met = metrics.compute(predictions)
+                log.realization_details(realiz, model, split, train, test, realiz_met)
+                self.plot.show(plots, model, realiz, train, test, plot_delay)
 
-            self.plot.show(plots, model, r, train, test, plot_delay)
-
+        # TODO: adapt final metrics to be shown by model
         final_metrics = metrics.compute_final_metrics(self.classes)
 
         log.experiment_results(final_metrics)
