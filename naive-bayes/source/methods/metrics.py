@@ -3,14 +3,18 @@ import pandas as pd
 
 
 class ClassifierMetrics:
-    def __init__(self):
+    def __init__(self, model_name, r, split, predictions):
         self.all_hit_rates = {}
-        self.worst_confusion_matrix = {}
+        self.model_name = model_name
+        self.realization_number = r
+        self.split = split
+        self.predictions = predictions
+        self._compute()
 
-    def confusion_matrix(self, predictions: list[tuple[np.ndarray, str]]):
+    def confusion_matrix(self):
         m = pd.crosstab(
-            [prediction[1] for prediction in predictions],  # predicted values
-            [prediction[0][-1] for prediction in predictions],  # true values
+            [prediction[1] for prediction in self.predictions],  # predicted values
+            [prediction[0][-1] for prediction in self.predictions],  # true values
             rownames=["Predicted"],
             colnames=["True"],
             dropna=False,
@@ -24,12 +28,12 @@ class ClassifierMetrics:
         m = m.sort_index(axis=0).sort_index(axis=1)
         return m
 
-    def compute(self, predictions):
+    def _compute(self):
         hit_miss_realization = {}
         hit_rates_realization = {"All": 0.0}
         std_dict_realization = {"All": 0.0}
 
-        confusion_matrix = self.confusion_matrix(predictions)
+        confusion_matrix = self.confusion_matrix()
         true_positives = confusion_matrix.values.diagonal()
         false_negatives = (confusion_matrix.sum(axis=0) - true_positives).to_numpy()
 
@@ -60,32 +64,42 @@ class ClassifierMetrics:
         for label in hit_miss_realization.keys():
             std_dict_realization[label] = float(np.std(hit_miss_realization[label]))
 
-        if len(self.all_hit_rates["All"]) >= 1 and all_hit_rate_realization <= min(
-            [float(rate) for rate in self.all_hit_rates["All"]]
-        ):
-            self.worst_confusion_matrix = confusion_matrix
+        self.summary = (confusion_matrix, hit_rates_realization, std_dict_realization)
 
-        return (confusion_matrix, hit_rates_realization, std_dict_realization)
+    @staticmethod
+    def compute_final_metrics(metrics: list["ClassifierMetrics"], classes):
+        if len(metrics) == 0:
+            exit("No metrics to compute final metrics")
 
-    def compute_final_metrics(self, classes):
         final_accuracies = {}
         final_std = {}
 
-        # Compute average hit rate for each class
-        for label, hit_rates_list in self.all_hit_rates.items():
-            avg_hit_rate = np.average(hit_rates_list)
-            final_accuracies[label] = avg_hit_rate
+        # list all possible models from metrics
+        models = set([m.model_name for m in metrics])
 
-        # Compute standard deviation from hit rates for each class
-        for label, hit_rates_list in self.all_hit_rates.items():
-            std = np.std(hit_rates_list)
-            final_std[label] = std
+        # list all possible labels from metrics
+        labels = metrics[0].all_hit_rates.keys()
 
-        print(f"\nClasses: {classes}")
-
-        print("\nWorst Confusion Matrix:")
-        # print whole worst_confusion_matrix without truncating
-        pd.set_option("display.max_columns", None)
-        print(self.worst_confusion_matrix)
+        # Compute average and standard deviation of hit rate for each class, by model
+        for model in models:
+            for label in labels:
+                hit_rates_per_label_model = [
+                    m.all_hit_rates[label]
+                    for m in metrics
+                    if m.model_name == model
+                    if m.all_hit_rates.get(label) is not None
+                ]
+                # convert label to class from classes
+                class_name = classes.get(label, label)
+                accuracy = np.average(hit_rates_per_label_model)
+                standard_deviation = np.std(hit_rates_per_label_model)
+                if final_accuracies.get(model) is None:
+                    final_accuracies[model] = {class_name: accuracy}
+                else:
+                    final_accuracies[model][class_name] = accuracy
+                if final_std.get(model) is None:
+                    final_std[model] = {class_name: standard_deviation}
+                else:
+                    final_std[model][class_name] = standard_deviation
 
         return {"Accuracy": final_accuracies, "Standard Deviation": final_std}

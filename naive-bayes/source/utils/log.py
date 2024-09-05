@@ -2,11 +2,13 @@ verbose: bool = False
 
 
 def model(model, database):
-    print(f"\n\033[1;33m# {model} Experiment in {database} \033[0m")
+    if verbose:
+        print(f"\n\033[1;33m# {model} Experiment in {database} \033[0m")
 
 
 def database(database):
-    print(f"\n\033[1;32m# {database} database \033[0m")
+    if verbose:
+        print(f"\n\033[1;32m# {database} database \033[0m")
 
 
 def realization_details(i, model, split, train, test, metrics):
@@ -30,7 +32,7 @@ def print_split_details(split, train, test):
 
 
 def print_metrics_for_realization(metrics):
-    (confusion_matrix, hit_rates, std_dict) = metrics
+    (confusion_matrix, hit_rates, std_dict) = metrics.summary
     if verbose:
         print("\n\033[1;34m# Metrics\033[0m")
         print("\nConfusion Matrix:")
@@ -43,11 +45,20 @@ def print_metrics_for_realization(metrics):
             print(f"{label}: {std:.2f}")
 
 
-def experiment_results(final_metrics):
-    if verbose:
-        print("\033[1;34m##### Final Metrics\033[0m")
+def experiment_results(final_metrics, database_name):
+    print(f"\n\033[1;34m##### Final Metrics for {database_name}\033[0m")
 
+    # generating markdown table
     for metric in final_metrics.keys():
-        print(f"\n\033[1;30m{metric}\033[0m")
-        for label, value in final_metrics[metric].items():
-            print(f"{label}: {value:.2f}")
+        labels = list(final_metrics[metric].items())[0][1].keys()
+        print(f"\n\033[1;30m{metric}\033[0m\n")
+        print("| ", end="")
+        for label in labels:
+            print(f"|{label}", end="")
+        print("|")
+        print("|-|" + ("-|" * len(labels)))
+        for model, dict in final_metrics[metric].items():
+            values = list(map(lambda v: f"{v}"[:4], dict.values()))
+            print(f"|{model}|{"|".join(values)}|")
+
+    # TODO: Should also show confusion matrix for average realizations / metrics

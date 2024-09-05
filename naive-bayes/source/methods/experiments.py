@@ -1,6 +1,7 @@
 from utils import databases, log
 from utils.plot import PlotFactory
 from methods.preprocessing import Preprocessing
+from methods.metrics import ClassifierMetrics
 
 
 class Experiment:
@@ -9,16 +10,17 @@ class Experiment:
         self.df = df
         self.classes = {}
         self.plot = plot
+        self.metrics = []
 
     def realizations(
         self,
         models,
         split,
         times,
-        metrics,
         plots,
         plot_delay=1.0,
     ):
+        # Preprocessing
         preprocessing = Preprocessing(self.df)
         self.df = (
             preprocessing.removing_rows_with_empty_features()
@@ -30,21 +32,34 @@ class Experiment:
             self.classes = preprocessing.classes
         self.plot.classes = self.classes
 
+        # Realizations
         for realiz in range(1, times + 1):
+            # Split
             train, test = split.split(self.df)
 
+            # For each model
             for model in models:
                 log.model(model.name, self.database_name)
+
+                # Train
                 model.fit(train.to_numpy())
+
+                # Test
                 predictions = model.predict(test.to_numpy())
-                realiz_met = metrics.compute(predictions)
+
+                # Metrics
+                realiz_met = ClassifierMetrics(model.name, realiz, split, predictions)
+                self.metrics.append(realiz_met)
                 log.realization_details(realiz, model, split, train, test, realiz_met)
+
+                # Plots
                 self.plot.show(plots, model, realiz, train, test, plot_delay)
 
-        # TODO: adapt final metrics to be shown by model
-        final_metrics = metrics.compute_final_metrics(self.classes)
-
-        log.experiment_results(final_metrics)
+        # TODO: compute final metrics for model from all realizations
+        final_metrics = ClassifierMetrics.compute_final_metrics(
+            self.metrics, self.classes
+        )
+        log.experiment_results(final_metrics, self.database_name)
 
 
 main = [
