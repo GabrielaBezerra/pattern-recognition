@@ -50,6 +50,12 @@ def experiment_results(final_metrics, database_name):
 
     # generating markdown table
     for metric in final_metrics.keys():
+        if metric == "Confusion Matrix":
+            print("\n\033[1;30mConfusion Matrix\033[0m\n")
+            for model, confusion_matrix in final_metrics[metric].items():
+                print(f"\033[1;31m{model}\033[0m")
+                print(confusion_matrix)
+            continue
         labels = list(final_metrics[metric].items())[0][1].keys()
         print(f"\n\033[1;30m{metric}\033[0m\n")
         print("| ", end="")

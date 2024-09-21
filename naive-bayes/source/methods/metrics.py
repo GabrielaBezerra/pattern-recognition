@@ -101,5 +101,18 @@ class ClassifierMetrics:
                     final_std[model] = {class_name: standard_deviation}
                 else:
                     final_std[model][class_name] = standard_deviation
-
-        return {"Accuracy": final_accuracies, "Standard Deviation": final_std}
+        
+        closest_to_average_case_confusion_matrix = {model: None}
+        for model in models:
+            closest_diff = 1
+            summaries_per_model = [m.summary for m in metrics if m.model_name == model]
+            for summary in summaries_per_model:
+                if final_accuracies[model]["All"] == summary[1]["All"]:
+                    closest_to_average_case_confusion_matrix[model] = summary[0]
+                    break
+                diff = abs(final_accuracies[model]["All"] - summary[1]["All"])
+                if diff < closest_diff:
+                    closest_diff = diff
+                    closest_to_average_case_confusion_matrix[model] = summary[0]
+                    
+        return {"Accuracy": final_accuracies, "Standard Deviation": final_std, "Confusion Matrix": closest_to_average_case_confusion_matrix}
