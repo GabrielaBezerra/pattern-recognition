@@ -16,4 +16,6 @@
 
 `code .`
 
-4. Pressione F5 para executar o projeto. O ponto de execução inicial é o arquivo `main.py` dentro da pasta `knn-dmc/source`.
+4. Pressione F5 para executar o projeto. O ponto de execução inicial é o arquivo `main.py` dentro da pasta `final/source`.
+
+Opcionalmente, altere as opções de logs, plots, e experimentos no arquivo `main.py`
