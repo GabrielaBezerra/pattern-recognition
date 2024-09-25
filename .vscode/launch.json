@@ -5,8 +5,11 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "kmedias/source/main.py",
+            "program": "gaussian-mix/source/main.py",
             "console": "integratedTerminal",
+            "env": {
+                "PYTHONWARNINGS": "ignore"
+            },
             "preLaunchTask": "Clear terminal",
             "justMyCode": false
         }
