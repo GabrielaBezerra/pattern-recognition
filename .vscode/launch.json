@@ -5,7 +5,7 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "naive-bayes/source/main.py",
+            "program": "discriminantes-lineares-quadraticos/source/main.py",
             "console": "integratedTerminal",
             "preLaunchTask": "Clear terminal",
             "justMyCode": false
