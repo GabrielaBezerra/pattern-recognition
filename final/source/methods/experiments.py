@@ -126,6 +126,15 @@ main = [
             decision_boundary_step=0.05,
         ),
     ),
+    Experiment(
+        database_name="Pair Programming Social Styles",
+        df=databases.loadBreastCancer(),
+        plot=PlotFactory(
+            database_name="Pair Programming Social Styles (1,11)",
+            features=(1, 11), # (1, 11) foi uma escolha arbitraria. Necessário analisar e escolher melhor.
+            decision_boundary_step=0.05,
+        ),
+    ),
 ]
 
 
@@ -222,6 +231,19 @@ breast_cancer = [
     for permutation in create_permutations(range(10))
 ]
 
+pair_programming_social_styles = [
+    Experiment(
+        database_name="Pair Programming Social Styles",
+        df=databases.loadPairProgrammingSocialStyles(),
+        plot=PlotFactory(
+            database_name=f"Pair Programming Social Styles {permutation}",
+            features=permutation,
+            decision_boundary_step=0.05,
+        ),
+    )
+    for permutation in create_permutations(range(10))
+]
+
 additional = (
     artificial_1
     + artificial_2
@@ -230,6 +252,7 @@ additional = (
     + column_3d
     + dermatology
     + breast_cancer
+    + pair_programming_social_styles
 )
 
 all = main + additional

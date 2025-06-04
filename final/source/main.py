@@ -11,9 +11,9 @@ from utils.plot import Plot
 from utils import log
 import numpy as np
 
-log.verbose = False
+log.verbose = True
 
-for exp in experiments.main:
+for exp in experiments.pair_programming_social_styles:
     log.database(exp.database_name)
     exp.realizations(
         models=[
@@ -27,12 +27,12 @@ for exp in experiments.main:
             BayesianGaussianMixture(),
         ],
         split=Holdout(train_percent=0.7),
-        times=1,
+        times=20,
         plots=[
-            Plot.TRAIN_TEST,
-            Plot.DECISION_BOUNDARY,
-            Plot.DECISION_BOUNDARY_3D,
-            Plot.GAUSSIAN_CURVES_3D,
+            # Plot.TRAIN_TEST,
+            # Plot.DECISION_BOUNDARY,
+            # Plot.DECISION_BOUNDARY_3D,
+            # Plot.GAUSSIAN_CURVES_3D,
         ],
-        plot_delay=3, # configure para 0 ver os graficos um de cada vez pressionando q
+        plot_delay=0, # configure para 0 ver os graficos um de cada vez pressionando q
     )

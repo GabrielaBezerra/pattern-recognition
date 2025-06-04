@@ -19,3 +19,14 @@
 4. Pressione F5 para executar o projeto. O ponto de execução inicial é o arquivo `main.py` dentro da pasta `final/source`.
 
 Opcionalmente, altere as opções de logs, plots, e experimentos no arquivo `main.py`
+
+## Modelos implementados
+
+- [x] KNN
+- [x] DMC
+- [x] Bayes Multivariado
+- [x] Naive Bayes
+- [x] Discriminante Linear (LDA)
+- [x] Discriminante Quadrático (QDA)
+- [x] Bayes com Mistura de Gaussianas
+- [x] KMeans

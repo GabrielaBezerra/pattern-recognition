@@ -95,3 +95,10 @@ def loadBreastCancer():
         ],
         delimiter=",",
     )
+
+def loadPairProgrammingSocialStyles():
+    return pd.read_csv(
+        "datasets/pair-programming/pair_programming_social_styles.csv",
+        header=0,
+        delimiter=",",
+    )
